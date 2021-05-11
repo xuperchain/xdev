@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xuperchain/xuperchain/core/cmd/xdev/internal/mkfile"
+	"github.com/xuperchain/xdev/lib/mkfile"
 )
 
 var (

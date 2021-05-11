@@ -3,7 +3,7 @@ package xchain
 import (
 	"testing"
 
-	"github.com/xuperchain/xuperchain/core/cmd/xdev/internal/jstest"
+	"github.com/xuperchain/xdev/lib/jstest"
 )
 
 func TestRunner(t *testing.T) {

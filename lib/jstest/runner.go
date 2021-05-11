@@ -10,7 +10,7 @@ import (
 
 	"github.com/ddliu/motto"
 	"github.com/robertkrimen/otto"
-	"github.com/xuperchain/xuperchain/core/cmd/xdev/internal/jstest/builtins"
+	"github.com/xuperchain/xdev/lib/jstest/builtins"
 )
 
 // TestCase is the one test case
