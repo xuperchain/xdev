@@ -1,15 +1,15 @@
 package xchain
 
 import (
+	"github.com/xuperchain/xupercore/kernel/ledger"
 	"math/rand"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/xuperchain/xuperchain/core/xmodel"
-	xmodel_pb "github.com/xuperchain/xuperchain/core/xmodel/pb"
+	xmodel "github.com/xuperchain/xupercore/kernel/contract/sandbox"
+	xmodel_pb "github.com/xuperchain/xupercore/kernel/ledger"
 )
 
 type mockStore struct {
@@ -34,24 +34,25 @@ func makeRawKey(bucket string, key []byte) []byte {
 }
 
 func (m *mockStore) Get(bucket string, key []byte) (*xmodel_pb.VersionedData, error) {
-	value, err := m.db.Get(makeRawKey(bucket, key), nil)
-	if err != nil {
-		return nil, err
-	}
-	data := new(xmodel_pb.VersionedData)
-	err = proto.Unmarshal(value, data)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	//value, err := m.db.Get(makeRawKey(bucket, key), nil)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//data := new(xmodel_pb.VersionedData)
+	//err = proto.Unmarshal(value, data)
+	//if err != nil {
+	//	return nil, err
+	//}
+	return nil, nil
 }
 
-func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (xmodel.Iterator, error) {
+func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (ledger.XMIterator, error) {
 	start, end := makeRawKey(bucket, startKey), makeRawKey(bucket, endKey)
 	iter := m.db.NewIterator(&util.Range{
 		Start: start,
 		Limit: end,
 	}, nil)
+	//newMockIterator(iter).Value()
 	return newMockIterator(iter), nil
 }
 
@@ -60,25 +61,23 @@ func (m *mockStore) Commit(cache *xmodel.XMCache) error {
 	rand.Read(txid)
 
 	batch := new(leveldb.Batch)
-	_, wset, _ := cache.GetRWSets()
-	for i, w := range wset {
-		rawKey := makeRawKey(w.GetBucket(), w.GetKey())
-		value, _ := proto.Marshal(&xmodel_pb.VersionedData{
-			RefTxid:   txid,
-			RefOffset: int32(i),
-			PureData:  w,
-		})
-		batch.Put(rawKey, value)
-	}
+	wset := cache.RWSet().WSet
+	_ =wset
+	//for i, w := range wset {
+	//	rawKey := makeRawKey(w.GetBucket(), w.GetKey())
+	//	value, _ := proto.Marshal(&xmodel_pb.VersionedData{
+	//		RefTxid:   txid,
+	//		RefOffset: int32(i),
+	//		PureData:  w,
+	//	})
+	//	batch.Put(rawKey, value)
+	//}
 
 	return m.db.Write(batch, nil)
 }
 
 func (m *mockStore) NewCache() *xmodel.XMCache {
-	cache, err := xmodel.NewXModelCache(m, nil)
-	if err != nil {
-		panic(err)
-	}
+	cache := xmodel.NewXModelCache(m)
 	return cache
 }
 
@@ -89,7 +88,7 @@ type mockIterator struct {
 	err  error
 }
 
-func newMockIterator(iter iterator.Iterator) xmodel.Iterator {
+func newMockIterator(iter iterator.Iterator) ledger.XMIterator {
 	return &mockIterator{
 		Iterator: iter,
 	}
@@ -103,11 +102,11 @@ func (m *mockIterator) First() bool {
 	if !ok {
 		return false
 	}
-	err := proto.Unmarshal(m.Iterator.Value(), &m.data)
-	if err != nil {
-		m.err = err
-		return false
-	}
+	//err := proto.Unmarshal(m.Iterator.Value(), &m.data)
+	//if err != nil {
+	//	m.err = err
+	//	return false
+	//}
 	return true
 }
 
@@ -120,14 +119,17 @@ func (m *mockIterator) Next() bool {
 		return false
 	}
 
-	err := proto.Unmarshal(m.Iterator.Value(), &m.data)
-	if err != nil {
-		m.err = err
-		return false
-	}
+	//err := proto.Unmarshal(m.Iterator.Value(), &m.data)
+	//if err != nil {
+	//	m.err = err
+	//	return false
+	//}
 	return true
 }
 
+func(m*mockIterator)Close(){
+
+}
 func (m *mockIterator) Error() error {
 	if m.err != nil {
 		return m.err
@@ -137,4 +139,9 @@ func (m *mockIterator) Error() error {
 
 func (m *mockIterator) Data() *xmodel_pb.VersionedData {
 	return &m.data
+}
+
+func(m *mockIterator) Value()* ledger.VersionedData{
+	//TODO
+	return nil
 }
