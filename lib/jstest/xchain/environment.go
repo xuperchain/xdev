@@ -3,7 +3,6 @@ package xchain
 import (
 	"encoding/json"
 	pb "github.com/xuperchain/xupercore/protos"
-
 	//"errors"
 	"io/ioutil"
 	"os"
@@ -29,35 +28,24 @@ func newEnvironment() (*environment, error) {
 		return nil, err
 	}
 	store := newMockStore()
-	//wasmconfig := &config.WasmConfig{
-	//	Driver: "ixvm",
-	//}
-	//nativeconfig := &config.NativeConfig{
-	//	Enable: true,
-	//}
-	//evmconfig := &config.EVMConfig{
-	//	Enable: true,
-	//	Driver: "evm",
-	//}
-	//
-	//xbridge, err := bridge.New(&bridge.XBridgeConfig{
-	//	Basedir: basedir,
-	//	VMConfigs: map[bridge.ContractType]bridge.VMConfig{
-	//		bridge.TypeWasm:   wasmconfig,
-	//		bridge.TypeNative: nativeconfig,
-	//		bridge.TypeEvm:    evmconfig,
-	//	},
-	//	//XModel:    store,
-	//	LogWriter: os.Stderr,
-	//})
+	vmconfig:=contract.DefaultContractConfig()
+	xbridge, err := bridge.New(&bridge.XBridgeConfig{
+		Basedir: basedir,
+		VMConfigs: map[bridge.ContractType]bridge.VMConfig{
+			bridge.TypeWasm:   &vmconfig.Wasm,
+			bridge.TypeNative: &vmconfig.Native,
+			bridge.TypeEvm:    &vmconfig.EVM,
+		},
+		XModel:    store,
+		LogWriter: os.Stderr,
+	})
 	if err != nil {
 		os.RemoveAll(basedir)
 		return nil, err
 	}
 
 	return &environment{
-		xbridge:nil,
-		//xbridge: xbridge,
+		xbridge: xbridge,
 		model:   store,
 		basedir: basedir,
 	}, nil
