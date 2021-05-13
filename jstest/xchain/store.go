@@ -1,15 +1,12 @@
 package xchain
 
 import (
-	"github.com/xuperchain/xupercore/kernel/ledger"
-	"math/rand"
-
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	xmodel "github.com/xuperchain/xupercore/kernel/contract/sandbox"
-	xmodel_pb "github.com/xuperchain/xupercore/kernel/ledger"
+	"github.com/xuperchain/xupercore/kernel/ledger"
 )
 
 type mockStore struct {
@@ -33,17 +30,19 @@ func makeRawKey(bucket string, key []byte) []byte {
 	return append(buf, key...)
 }
 
-func (m *mockStore) Get(bucket string, key []byte) (*xmodel_pb.VersionedData, error) {
+func (m *mockStore) Get(bucket string, key []byte) (*ledger.VersionedData, error) {
 	//value, err := m.db.Get(makeRawKey(bucket, key), nil)
 	//if err != nil {
 	//	return nil, err
 	//}
-	//data := new(xmodel_pb.VersionedData)
+	//return ledger.VersionedData{RefTxid:}
+	//data := new(ledger.VersionedData)
 	//err = proto.Unmarshal(value, data)
 	//if err != nil {
 	//	return nil, err
 	//}
-	return nil, nil
+	//return data, nil
+	return nil,nil
 }
 
 func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (ledger.XMIterator, error) {
@@ -57,23 +56,22 @@ func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (ledge
 }
 
 func (m *mockStore) Commit(cache *xmodel.XMCache) error {
-	txid := make([]byte, 32)
-	rand.Read(txid)
-
-	batch := new(leveldb.Batch)
-	wset := cache.RWSet().WSet
-	_ =wset
+	//txid := make([]byte, 32)
+	//rand.Read(txid)
+	//
+	//batch := new(leveldb.Batch)
+	//wset := cache.RWSet().WSet
 	//for i, w := range wset {
 	//	rawKey := makeRawKey(w.GetBucket(), w.GetKey())
-	//	value, _ := proto.Marshal(&xmodel_pb.VersionedData{
+	//	value, _ := proto.Marshal(&ledger.VersionedData{
 	//		RefTxid:   txid,
 	//		RefOffset: int32(i),
 	//		PureData:  w,
 	//	})
 	//	batch.Put(rawKey, value)
 	//}
-
-	return m.db.Write(batch, nil)
+return nil
+	//return m.db.Write(batch, nil)
 }
 
 func (m *mockStore) NewCache() *xmodel.XMCache {
@@ -84,7 +82,7 @@ func (m *mockStore) NewCache() *xmodel.XMCache {
 type mockIterator struct {
 	iterator.Iterator
 
-	data xmodel_pb.VersionedData
+	data ledger.VersionedData
 	err  error
 }
 
@@ -137,7 +135,7 @@ func (m *mockIterator) Error() error {
 	return m.Iterator.Error()
 }
 
-func (m *mockIterator) Data() *xmodel_pb.VersionedData {
+func (m *mockIterator) Data() *ledger.VersionedData {
 	return &m.data
 }
 

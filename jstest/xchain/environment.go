@@ -2,6 +2,7 @@ package xchain
 
 import (
 	"encoding/json"
+	"github.com/xuperchain/xupercore/kernel/contract/sandbox"
 	pb "github.com/xuperchain/xupercore/protos"
 	//"errors"
 	"io/ioutil"
@@ -18,7 +19,8 @@ import (
 
 type environment struct {
 	xbridge *bridge.XBridge
-	model   *mockStore
+	//model   *mockStore
+	model *sandbox.MemXModel
 	basedir string
 }
 
@@ -27,7 +29,7 @@ func newEnvironment() (*environment, error) {
 	if err != nil {
 		return nil, err
 	}
-	store := newMockStore()
+	store := sandbox.NewMemXModel()
 	vmconfig:=contract.DefaultContractConfig()
 	xbridge, err := bridge.New(&bridge.XBridgeConfig{
 		Basedir: basedir,
@@ -91,7 +93,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	}
 	dargs["contract_desc"] = desc
 
-	xcache := e.model.NewCache()
+	//xcache := e.model.NewCache()
 	//TODO
 	//context,err:=e.xbridge.NewContext(nil)
 	//resp,limit,err:=e.xbridge.DeployContract(context)
@@ -105,7 +107,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 		return nil, err
 	}
 
-	err = e.model.Commit(xcache)
+	//err = e.model.Commit(xcache)
 	if err != nil {
 		return nil, err
 	}
