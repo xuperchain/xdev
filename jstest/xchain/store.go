@@ -4,9 +4,9 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/storage"
-	"github.com/syndtr/goleveldb/leveldb/util"
-	xmodel "github.com/xuperchain/xupercore/kernel/contract/sandbox"
+	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/ledger"
+	"github.com/xuperchain/xupercore/protos"
 )
 
 type mockStore struct {
@@ -30,7 +30,7 @@ func makeRawKey(bucket string, key []byte) []byte {
 	return append(buf, key...)
 }
 
-func (m *mockStore) Get(bucket string, key []byte) (*ledger.VersionedData, error) {
+func (m *mockStore) Get(bucket string, key []byte) ([]byte, error) {
 	//value, err := m.db.Get(makeRawKey(bucket, key), nil)
 	//if err != nil {
 	//	return nil, err
@@ -45,17 +45,18 @@ func (m *mockStore) Get(bucket string, key []byte) (*ledger.VersionedData, error
 	return nil,nil
 }
 
-func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (ledger.XMIterator, error) {
-	start, end := makeRawKey(bucket, startKey), makeRawKey(bucket, endKey)
-	iter := m.db.NewIterator(&util.Range{
-		Start: start,
-		Limit: end,
-	}, nil)
+func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (contract.Iterator, error) {
+	//start, end := makeRawKey(bucket, startKey), makeRawKey(bucket, endKey)
+	//iter := m.db.NewIterator(&util.Range{
+	//	Start: start,
+	//	Limit: end,
+	//}, nil)
 	//newMockIterator(iter).Value()
-	return newMockIterator(iter), nil
+	//return newMockIterator(iter), nil
+	return nil,nil
 }
 
-func (m *mockStore) Commit(cache *xmodel.XMCache) error {
+//func (m *mockStore) Commit(cache *xmodel.XMCache) error {
 	//txid := make([]byte, 32)
 	//rand.Read(txid)
 	//
@@ -70,14 +71,10 @@ func (m *mockStore) Commit(cache *xmodel.XMCache) error {
 	//	})
 	//	batch.Put(rawKey, value)
 	//}
-return nil
+//return nil
 	//return m.db.Write(batch, nil)
-}
+//}
 
-func (m *mockStore) NewCache() *xmodel.XMCache {
-	cache := xmodel.NewXModelCache(m)
-	return cache
-}
 
 type mockIterator struct {
 	iterator.Iterator
@@ -142,4 +139,20 @@ func (m *mockIterator) Data() *ledger.VersionedData {
 func(m *mockIterator) Value()* ledger.VersionedData{
 	//TODO
 	return nil
+}
+func(m*mockStore)AddEvent(...*protos.ContractEvent){
+
+}
+func(m*mockStore)Del(string, []byte) error{
+	return nil
+}
+func(m*mockStore) Flush()error{
+	return nil
+}
+func(m*mockStore)Put(string,[]byte,[]byte)error{
+return nil
+}
+func(m* mockStore)RWSet() *contract.RWSet{
+	return nil
+
 }
