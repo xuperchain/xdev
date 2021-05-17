@@ -46,9 +46,11 @@ type Runner struct {
 
 // NewRunner instance a Runner
 func NewRunner(opt *RunOption, adapter Adapter) (*Runner, error) {
+	//TODO @fengjin
 	if adapter == nil {
 		adapter = defaultAdapter{}
 	}
+	//TODO @fengjin
 	if opt == nil {
 		opt = DefaultRunOption()
 	}
