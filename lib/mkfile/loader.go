@@ -225,9 +225,6 @@ func (l *Loader) loadPackage(wd string, desc *DependencyDesc) (string, error) {
 func (l *Loader) parseModuleDeps(node *moduleNode) (map[string]*moduleNode, error) {
 	modules := make(map[string]*moduleNode)
 	for _, dep := range node.deps {
-		if dep.Name=="xchain"{
-			continue
-		}
 		if dep.Name == MainPackage {
 			return nil, errors.New("can not use main package as dependency")
 		}
