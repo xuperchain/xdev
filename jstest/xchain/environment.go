@@ -2,7 +2,7 @@ package xchain
 
 import (
 	"encoding/json"
-	pb "github.com/xuperchain/xupercore/protos"
+	"github.com/xuperchain/xupercore/protos"
 	"io/ioutil"
 	"os"
 
@@ -14,57 +14,6 @@ import (
 	_ "github.com/xuperchain/xupercore/bcs/contract/native"
 	_ "github.com/xuperchain/xupercore/bcs/contract/xvm"
 )
-
-type kcontextImpl struct {
-	ctx     *bridge.Context
-	syscall *bridge.SyscallService
-	contract.StateSandbox
-	contract.ChainCore
-	used, limit contract.Limits
-}
-
-func newKContext(ctx *bridge.Context, syscall *bridge.SyscallService) *kcontextImpl {
-	return &kcontextImpl{
-		ctx:          ctx,
-		syscall:      syscall,
-		limit:        ctx.ResourceLimits,
-		StateSandbox: ctx.State,
-		ChainCore:    ctx.Core,
-	}
-}
-
-// 交易相关数据
-func (k *kcontextImpl) Args() map[string][]byte {
-	return k.ctx.Args
-}
-
-func (k *kcontextImpl) Initiator() string {
-	return k.ctx.Initiator
-}
-
-func (k *kcontextImpl) Caller() string {
-	return k.ctx.Caller
-}
-
-func (k *kcontextImpl) AuthRequire() []string {
-	return k.ctx.AuthRequire
-}
-
-func (k *kcontextImpl) AddResourceUsed(delta contract.Limits) {
-	k.used.Add(delta)
-}
-
-func (k *kcontextImpl) ResourceLimit() contract.Limits {
-	return k.limit
-}
-
-func (k *kcontextImpl) Call(module, contractName, method string, args map[string][]byte) (*contract.Response, error) {
-	return &contract.Response{
-		Status:  200,
-		Message: "ok",
-		Body:    nil,
-	}, nil
-}
 
 type environment struct {
 	xbridge *bridge.XBridge
@@ -141,7 +90,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	}
 	dargs["init_args"] = initArgs
 
-	descpb := new(pb.WasmCodeDesc)
+	descpb := new(protos.WasmCodeDesc)
 	descpb.Runtime = args.Lang
 	descpb.ContractType = args.Type
 	desc, err := proto.Marshal(descpb)
@@ -225,12 +174,7 @@ type invokeArgs struct {
 }
 
 func (e *environment) ContractExists(name string) bool {
-	//vm, ok := e.xbridge.GetVirtualMachine("wasm")
-	//if !ok {
-	//	return false
-	//}
 
-	//xcache := e.model.NewCache()
 	ctx, err := e.xbridge.NewContext(&contract.ContextConfig{
 		State: e.model,
 		//Initiator:      args.Options.Account,

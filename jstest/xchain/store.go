@@ -1,6 +1,7 @@
 package xchain
 
 import (
+	"bytes"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -36,23 +37,36 @@ func (m *mockStore) Get(bucket string, key []byte) ([]byte, error) {
 }
 
 func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (contract.Iterator, error) {
-	return &mockLedgerIterator{}, nil
+	return &mockLedgerIterator{
+		Iterator: m.db.NewIterator(&util.Range{
+			Start: makeRawKey(bucket, startKey),
+			Limit: makeRawKey(bucket, endKey),
+		}, nil),
+	}, nil
 }
 
 type mockLedgerIterator struct {
+	iterator.Iterator
+	err error
 }
 
 func (m *mockLedgerIterator) Key() []byte {
-	return []byte("")
+	//TODO @fengjin
+	return bytes.Split(m.Iterator.Key(), []byte("/"))[1]
 }
 func (m *mockLedgerIterator) Value() []byte {
-	return []byte{}
+	return m.Iterator.Value()
 }
 
-func (m *mockLedgerIterator) Next() bool { return false }
+func (m *mockLedgerIterator) Next() bool {
+	if m.err != nil {
+		return false
+	}
+	return m.Iterator.Next()
+}
 
 func (m *mockLedgerIterator) Error() error {
-	return nil
+	return m.Iterator.Error()
 }
 
 func (m *mockLedgerIterator) Close() {}
@@ -70,37 +84,12 @@ func newMockIterator(iter iterator.Iterator) ledger.XMIterator {
 	}
 }
 
-func (m *mockIterator) First() bool {
-	if m.err != nil {
-		return false
-	}
-	ok := m.Iterator.First()
-	if !ok {
-		return false
-	}
-	//err := proto.Unmarshal(m.Iterator.Value(), &m.data)
-	//if err != nil {
-	//	m.err = err
-	//	return false
-	//}
-	return true
-}
-
 func (m *mockIterator) Next() bool {
 	if m.err != nil {
 		return false
 	}
-	ok := m.Iterator.Next()
-	if !ok {
-		return false
-	}
+	return m.Iterator.Next()
 
-	//err := proto.Unmarshal(m.Iterator.Value(), &m.data)
-	//if err != nil {
-	//	m.err = err
-	//	return false
-	//}
-	return true
 }
 
 func (m *mockIterator) Close() {
@@ -111,10 +100,6 @@ func (m *mockIterator) Error() error {
 		return m.err
 	}
 	return m.Iterator.Error()
-}
-
-func (m *mockIterator) Data() *ledger.VersionedData {
-	return &ledger.VersionedData{}
 }
 
 func (m *mockIterator) Value() *ledger.VersionedData {
