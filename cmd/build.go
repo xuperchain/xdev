@@ -30,6 +30,9 @@ var (
 		"-L/usr/local/lib",
 		"-lprotobuf-lite",
 		"-lpthread",
+		"-lxchain",
+		"-lprotobuf",
+		"--js-library /src/src/xchain/exports.js",
 	}
 )
 
@@ -111,6 +114,8 @@ func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
 	if err != nil {
 		return err
 	}
+	//TODO
+	b.WithCxxFlags(defaultCxxFlags).WithLDFlags(defaultLDFlags)
 	c.builder = b
 	c.entryPkg = pkg
 	return nil
@@ -121,14 +126,7 @@ func (c *buildCommand) xdevRoot() (string, error) {
 	if xroot != "" {
 		return filepath.Abs(xroot)
 	}
-	xchainRoot := os.Getenv("XCHAIN_ROOT")
-	if xchainRoot == "" {
-		return "", errors.New(`XDEV_ROOT and XCHAIN_ROOT must be set one.
-XCHAIN_ROOT is the path of $xuperchain_project_root/core.
-XDEV_ROOT is the path of $xuperchain_project_root/core/contractsdk/cpp`)
-	}
-	xroot = filepath.Join(xchainRoot, "contractsdk", "cpp")
-	return filepath.Abs(xroot)
+	return xroot, nil
 }
 
 func (c *buildCommand) xdevCacheDir() (string, error) {
@@ -190,7 +188,11 @@ func addonModules(xroot, pkgpath string) ([]mkfile.DependencyDesc, error) {
 	if desc.Package.Name != mkfile.MainPackage {
 		return nil, nil
 	}
-	return []mkfile.DependencyDesc{xchainModule(xroot)}, nil
+	if os.Getenv("XDEV_ROOT") != "" {
+		return []mkfile.DependencyDesc{xchainModule(xroot)}, nil
+	}
+	return []mkfile.DependencyDesc{}, nil
+
 }
 
 func (c *buildCommand) buildPackage(root string) error {
@@ -216,15 +218,20 @@ func (c *buildCommand) buildPackage(root string) error {
 		return err
 	}
 
-	err = c.initCompileFlags(xroot)
-	if err != nil {
-		return err
-	}
-
+	// for contract-sdk-cpp developers
+	//TODO c.builder should be initialized for safety
 	err = c.parsePackage(".", xcache, xroot)
 	if err != nil {
 		return err
 	}
+
+	//if xroot !=""{
+
+	err = c.initCompileFlags(xroot)
+	if err != nil {
+		return err
+	}
+	//}
 
 	if c.makeFileOnly {
 		return c.builder.GenerateMakeFile(os.Stdout)
