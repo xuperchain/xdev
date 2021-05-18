@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/xuperchain/xdev/lib/jstest"
-	"github.com/xuperchain/xdev/lib/jstest/xchain"
+	"github.com/xuperchain/xdev/jstest"
+	"github.com/xuperchain/xdev/jstest/xchain"
 )
 
 type testCommand struct {

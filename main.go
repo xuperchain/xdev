@@ -1,6 +1,6 @@
 package main
 
-import "github.com/xuperchain/xdev/lib/cmd"
+import "github.com/xuperchain/xdev/cmd"
 
 var (
 	buildVersion = ""
