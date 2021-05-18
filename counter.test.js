@@ -16,13 +16,13 @@ function deploy() {
 
 Test("Increase", function (t) {
     var c = deploy();
-    // var resp = c.Invoke("increase", { "key": "xchain" }, { "name": "11111" });
-    // assert.equal(resp.Body, "1");
+    var resp = c.Invoke("increase", { "key": "xchain" }, { "name": "11111" });
+    assert.equal(resp.Body, "1");
 })
-//
-// Test("Get", function (t) {
-//     var c = deploy()
-    // c.Invoke("increase", { "key": "xchain" });
-    // var resp = c.Invoke("get", { "key": "xchain" })
-    // assert.equal(resp.Body, "1")
-// })
+
+Test("Get", function (t) {
+    var c = deploy()
+    c.Invoke("increase", { "key": "xchain" });
+    var resp = c.Invoke("get", { "key": "xchain" })
+    assert.equal(resp.Body, "1")
+})

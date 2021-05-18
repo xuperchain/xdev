@@ -31,18 +31,7 @@ func makeRawKey(bucket string, key []byte) []byte {
 }
 
 func (m *mockStore) Get(bucket string, key []byte) ([]byte, error) {
-	//value, err := m.db.Get(makeRawKey(bucket, key), nil)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//return ledger.VersionedData{RefTxid:}
-	//data := new(ledger.VersionedData)
-	//err = proto.Unmarshal(value, data)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//return data, nil
-	return nil,nil
+	return m.db.Get(makeRawKey(bucket, key), nil)
 }
 
 func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (contract.Iterator, error) {
@@ -53,28 +42,8 @@ func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (contr
 	//}, nil)
 	//newMockIterator(iter).Value()
 	//return newMockIterator(iter), nil
-	return nil,nil
+	return nil, nil
 }
-
-//func (m *mockStore) Commit(cache *xmodel.XMCache) error {
-	//txid := make([]byte, 32)
-	//rand.Read(txid)
-	//
-	//batch := new(leveldb.Batch)
-	//wset := cache.RWSet().WSet
-	//for i, w := range wset {
-	//	rawKey := makeRawKey(w.GetBucket(), w.GetKey())
-	//	value, _ := proto.Marshal(&ledger.VersionedData{
-	//		RefTxid:   txid,
-	//		RefOffset: int32(i),
-	//		PureData:  w,
-	//	})
-	//	batch.Put(rawKey, value)
-	//}
-//return nil
-	//return m.db.Write(batch, nil)
-//}
-
 
 type mockIterator struct {
 	iterator.Iterator
@@ -122,7 +91,7 @@ func (m *mockIterator) Next() bool {
 	return true
 }
 
-func(m*mockIterator)Close(){
+func (m *mockIterator) Close() {
 
 }
 func (m *mockIterator) Error() error {
@@ -133,26 +102,45 @@ func (m *mockIterator) Error() error {
 }
 
 func (m *mockIterator) Data() *ledger.VersionedData {
-	return &m.data
+	return &ledger.VersionedData{}
 }
 
-func(m *mockIterator) Value()* ledger.VersionedData{
-	//TODO
-	return nil
+func (m *mockIterator) Value() *ledger.VersionedData {
+	return &ledger.VersionedData{}
 }
-func(m*mockStore)AddEvent(...*protos.ContractEvent){
+func (m *mockStore) AddEvent(...*protos.ContractEvent) {
 
 }
-func(m*mockStore)Del(string, []byte) error{
+func (m *mockStore) Del(string, []byte) error {
 	return nil
 }
-func(m*mockStore) Flush()error{
+func (m *mockStore) Flush() error {
 	return nil
 }
-func(m*mockStore)Put(string,[]byte,[]byte)error{
-return nil
+func (m *mockStore) Put(bucket string, key []byte, value []byte) error {
+	return m.db.Put(makeRawKey(bucket, key), value, nil)
 }
-func(m* mockStore)RWSet() *contract.RWSet{
-	return nil
+func (m *mockStore) RWSet() *contract.RWSet {
+	return &contract.RWSet{
+		RSet: []*ledger.VersionedData{},
+		WSet: []*ledger.PureData{},
+	}
+}
 
+type mockCache struct {
+}
+
+//
+//type mockIterator struct {
+//}
+
+func (m *mockCache) Get(string, []byte) (*ledger.VersionedData, error) {
+	return &ledger.VersionedData{}, nil
+}
+func (m *mockCache) Select(bucket string, startKey []byte, endKey []byte) (ledger.XMIterator, error) {
+	return &mockIterator{}, nil
+}
+
+func (m *mockStore) NewCache() ledger.XMReader {
+	return &mockCache{}
 }

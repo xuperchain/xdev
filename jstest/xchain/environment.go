@@ -2,7 +2,6 @@ package xchain
 
 import (
 	"encoding/json"
-	"github.com/xuperchain/xupercore/kernel/contract/sandbox"
 	pb "github.com/xuperchain/xupercore/protos"
 	//"errors"
 	"io/ioutil"
@@ -61,7 +60,7 @@ func (k *kcontextImpl) ResourceLimit() contract.Limits {
 }
 
 func (k *kcontextImpl) Call(module, contractName, method string, args map[string][]byte) (*contract.Response, error) {
-	return nil,nil
+	return nil, nil
 	//var argPairs []*pb.ArgPair
 	//for k, v := range args {
 	//	argPairs = append(argPairs, &pb.ArgPair{
@@ -89,17 +88,19 @@ func (k *kcontextImpl) Call(module, contractName, method string, args map[string
 	//}, nil
 }
 
-
-
-
-
+//type XMReader struct {
+//	读取一个key的值，返回的value就是有版本的data
+//Get(bucket string, key []byte) (*VersionedData, error)
+//扫描一个bucket中所有的kv, 调用者可以设置key区间[startKey, endKey)
+//Select(bucket string, startKey []byte, endKey []byte) (XMIterator, error)
+//}
 //
 //
 //
 type environment struct {
 	xbridge *bridge.XBridge
-	//model   *mockStore
-	model *sandbox.MemXModel
+	model   *mockStore
+	//model *sandbox.MemXModel
 	basedir string
 }
 
@@ -108,16 +109,18 @@ func newEnvironment() (*environment, error) {
 	if err != nil {
 		return nil, err
 	}
-	store := sandbox.NewMemXModel()
-	vmconfig:=contract.DefaultContractConfig()
+	store := newMockStore()
+	vmconfig := contract.DefaultContractConfig()
+	wasmConfig := vmconfig.Wasm
+	wasmConfig.Driver = "ixvm"
 	xbridge, err := bridge.New(&bridge.XBridgeConfig{
 		Basedir: basedir,
 		VMConfigs: map[bridge.ContractType]bridge.VMConfig{
-			bridge.TypeWasm:   &vmconfig.Wasm,
+			bridge.TypeWasm:   &wasmConfig,
 			bridge.TypeNative: &vmconfig.Native,
 			bridge.TypeEvm:    &vmconfig.EVM,
 		},
-		XModel:    store,
+		XModel:    store.NewCache(),
 		LogWriter: os.Stderr,
 	})
 	if err != nil {
@@ -158,6 +161,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	dargs := make(map[string][]byte)
 	dargs["contract_name"] = []byte(args.Name)
 	dargs["contract_code"] = args.codeBuf
+
 	initArgs, err := json.Marshal(args.trueArgs)
 	if err != nil {
 		return nil, err
@@ -173,17 +177,17 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	}
 	dargs["contract_desc"] = desc
 
-	ctx:=&bridge.Context{
+	ctx := &bridge.Context{
 		//ID     int64
 		//Module string
 		//合约名字
-		ContractName:args.Name,
+		ContractName: args.Name,
 
-		//ResourceLimits contract.Limits
+		ResourceLimits: contract.MaxLimits,
 
 		//State ：
 
-		Args :args.trueArgs,
+		Args: dargs,
 
 		//Method string
 
@@ -193,7 +197,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 
 		//AuthRequire []string
 
-		CanInitialize:true,
+		CanInitialize: true,
 
 		//Core contract.ChainCore
 
@@ -223,21 +227,21 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	//	sandboxnewMockStore(),
 	//}
 	//kctx:=newKContext(ctx,nil)
-	kctx:=&kcontextImpl{
+	kctx := &kcontextImpl{
 		ctx:          ctx,
 		syscall:      nil,
-		StateSandbox: new(mockStore),
+		StateSandbox: e.model,
 		ChainCore:    new(chainCore),
-		used:         contract.Limits{},
-		limit:        contract.Limits{},
+		used:         contract.Limits{0, 0, 0, 0},
+		limit:        contract.MaxLimits,
 	}
-	
-	_,_,err =e.xbridge.DeployContract(kctx)
-	if err!=nil{
-		return nil,err
+	//TODO
+	resp, _, err := e.xbridge.DeployContract(kctx)
+	if err != nil {
+		return nil, err
 	}
-	return nil,nil
-	//return newContractResponse(resp), nil
+
+	return newContractResponse(resp), nil
 }
 
 type invokeOptions struct {
@@ -273,19 +277,12 @@ func (e *environment) ContractExists(name string) bool {
 }
 
 func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, error) {
-	//vm, ok := e.xbridge.GetVirtualMachine("wasm")
-	//if !ok {
-	//	return nil, errors.New("vm not found")
-	//}
-	//xcache := e.model.NewCache()
-	//
 	ctx, err := e.xbridge.NewContext(&contract.ContextConfig{
-		//Initiator:      args.Options.Account,
-		//TransferAmount: args.Options.Amount,
-		//ContractName:   name,
-		//XMCache:        xcache,
-		//Core:           new(chainCore),
-		//ResourceLimits: contract.MaxLimits,
+		State:          e.model,
+		Initiator:      args.Options.Account,
+		TransferAmount: args.Options.Amount,
+		ContractName:   name,
+		ResourceLimits: contract.MaxLimits,
 	})
 	if err != nil {
 		return nil, err
@@ -301,7 +298,6 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 		return newContractResponse(resp), nil
 	}
 
-	//err = e.model.Commit(xcache)
 	if err != nil {
 		return nil, err
 	}
