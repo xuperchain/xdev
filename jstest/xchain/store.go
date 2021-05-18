@@ -106,7 +106,7 @@ func (m *mockIterator) Value() *ledger.VersionedData {
 	return &ledger.VersionedData{}
 }
 func (m *mockStore) AddEvent(...*protos.ContractEvent) {
-
+	panic("not impl")
 }
 func (m *mockStore) Del(string, []byte) error {
 	return nil
