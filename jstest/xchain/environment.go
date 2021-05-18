@@ -2,25 +2,24 @@ package xchain
 
 import (
 	"encoding/json"
-	"github.com/xuperchain/xupercore/kernel/contract/sandbox"
-	pb "github.com/xuperchain/xupercore/protos"
-	//"errors"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/xuperchain/xupercore/kernel/contract"
-	"github.com/xuperchain/xupercore/kernel/contract/bridge"
-	//TODO
-	_ "github.com/xuperchain/xupercore/bcs/contract/evm"
-	_ "github.com/xuperchain/xupercore/bcs/contract/native"
-	_ "github.com/xuperchain/xupercore/bcs/contract/xvm"
+	"github.com/xuperchain/xuperchain/core/common/config"
+	"github.com/xuperchain/xuperchain/core/contract"
+	"github.com/xuperchain/xuperchain/core/contract/bridge"
+	_ "github.com/xuperchain/xuperchain/core/contract/evm"
+	_ "github.com/xuperchain/xuperchain/core/contract/native"
+	_ "github.com/xuperchain/xuperchain/core/contract/wasm/xvm"
+	"github.com/xuperchain/xuperchain/core/pb"
 )
 
 type environment struct {
 	xbridge *bridge.XBridge
-	//model   *mockStore
-	model *sandbox.MemXModel
+	model   *mockStore
 	basedir string
 }
 
@@ -29,14 +28,24 @@ func newEnvironment() (*environment, error) {
 	if err != nil {
 		return nil, err
 	}
-	store := sandbox.NewMemXModel()
-	vmconfig:=contract.DefaultContractConfig()
+	store := newMockStore()
+	wasmconfig := &config.WasmConfig{
+		Driver: "ixvm",
+	}
+	nativeconfig := &config.NativeConfig{
+		Enable: true,
+	}
+	evmconfig := &config.EVMConfig{
+		Enable: true,
+		Driver: "evm",
+	}
+
 	xbridge, err := bridge.New(&bridge.XBridgeConfig{
 		Basedir: basedir,
 		VMConfigs: map[bridge.ContractType]bridge.VMConfig{
-			bridge.TypeWasm:   &vmconfig.Wasm,
-			bridge.TypeNative: &vmconfig.Native,
-			bridge.TypeEvm:    &vmconfig.EVM,
+			bridge.TypeWasm:   wasmconfig,
+			bridge.TypeNative: nativeconfig,
+			bridge.TypeEvm:    evmconfig,
 		},
 		XModel:    store,
 		LogWriter: os.Stderr,
@@ -93,29 +102,25 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	}
 	dargs["contract_desc"] = desc
 
-	//xcache := e.model.NewCache()
-	//TODO
-	//context,err:=e.xbridge.NewContext(nil)
-	//resp,limit,err:=e.xbridge.DeployContract(context)
-	//resp, _, err := e.xbridge.DeployContract(&contract.ContextConfig{
-	//	XMCache:        xcache,
-	//	ResourceLimits: contract.MaxLimits,
-	//	Core:           new(chainCore),
-	//	Initiator:      args.Options.Account,
-	//}, dargs)
+	xcache := e.model.NewCache()
+	resp, _, err := e.xbridge.DeployContract(&contract.ContextConfig{
+		XMCache:        xcache,
+		ResourceLimits: contract.MaxLimits,
+		Core:           new(chainCore),
+		Initiator:      args.Options.Account,
+	}, dargs)
 	if err != nil {
 		return nil, err
 	}
 
-	//err = e.model.Commit(xcache)
+	err = e.model.Commit(xcache)
 	if err != nil {
 		return nil, err
 	}
-	//if os.Getenv("DEBUG") != "" {
-		//fmt.Printf(resp.String())
-	//}
-	return nil,nil
-	//return newContractResponse(resp), nil
+	if os.Getenv("DEBUG") != "" {
+		fmt.Printf(resp.String())
+	}
+	return newContractResponse(resp), nil
 }
 
 type invokeOptions struct {
@@ -131,39 +136,39 @@ type invokeArgs struct {
 }
 
 func (e *environment) ContractExists(name string) bool {
-	//vm, ok := e.xbridge.GetVirtualMachine("wasm")
-	//if !ok {
-	//	return false
-	//}
-	//
-	//xcache := e.model.NewCache()
-	//
-	//ctx, err := vm.NewContext(&contract.ContextConfig{
-	//	ContractName:   name,
-	//	XMCache:        xcache,
-	//	ResourceLimits: contract.MaxLimits,
-	//})
-	//if err != nil {
-	//	return false
-	//}
-	//ctx.Release()
+	vm, ok := e.xbridge.GetVirtualMachine("wasm")
+	if !ok {
+		return false
+	}
+
+	xcache := e.model.NewCache()
+
+	ctx, err := vm.NewContext(&contract.ContextConfig{
+		ContractName:   name,
+		XMCache:        xcache,
+		ResourceLimits: contract.MaxLimits,
+	})
+	if err != nil {
+		return false
+	}
+	ctx.Release()
 	return true
 }
 
 func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, error) {
-	//vm, ok := e.xbridge.GetVirtualMachine("wasm")
-	//if !ok {
-	//	return nil, errors.New("vm not found")
-	//}
-	//xcache := e.model.NewCache()
-	//
-	ctx, err := e.xbridge.NewContext(&contract.ContextConfig{
-		//Initiator:      args.Options.Account,
-		//TransferAmount: args.Options.Amount,
-		//ContractName:   name,
-		//XMCache:        xcache,
-		//Core:           new(chainCore),
-		//ResourceLimits: contract.MaxLimits,
+	vm, ok := e.xbridge.GetVirtualMachine("wasm")
+	if !ok {
+		return nil, errors.New("vm not found")
+	}
+	xcache := e.model.NewCache()
+
+	ctx, err := vm.NewContext(&contract.ContextConfig{
+		Initiator:      args.Options.Account,
+		TransferAmount: args.Options.Amount,
+		ContractName:   name,
+		XMCache:        xcache,
+		Core:           new(chainCore),
+		ResourceLimits: contract.MaxLimits,
 	})
 	if err != nil {
 		return nil, err
@@ -179,7 +184,7 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 		return newContractResponse(resp), nil
 	}
 
-	//err = e.model.Commit(xcache)
+	err = e.model.Commit(xcache)
 	if err != nil {
 		return nil, err
 	}
