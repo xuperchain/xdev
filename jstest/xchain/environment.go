@@ -3,7 +3,6 @@ package xchain
 import (
 	"encoding/json"
 	pb "github.com/xuperchain/xupercore/protos"
-	//"errors"
 	"io/ioutil"
 	"os"
 
@@ -60,7 +59,11 @@ func (k *kcontextImpl) ResourceLimit() contract.Limits {
 }
 
 func (k *kcontextImpl) Call(module, contractName, method string, args map[string][]byte) (*contract.Response, error) {
-	return nil, nil
+	return &contract.Response{
+		Status:  200,
+		Message: "ok",
+		Body:    nil,
+	}, nil
 	//var argPairs []*pb.ArgPair
 	//for k, v := range args {
 	//	argPairs = append(argPairs, &pb.ArgPair{
@@ -88,15 +91,6 @@ func (k *kcontextImpl) Call(module, contractName, method string, args map[string
 	//}, nil
 }
 
-//type XMReader struct {
-//	读取一个key的值，返回的value就是有版本的data
-//Get(bucket string, key []byte) (*VersionedData, error)
-//扫描一个bucket中所有的kv, 调用者可以设置key区间[startKey, endKey)
-//Select(bucket string, startKey []byte, endKey []byte) (XMIterator, error)
-//}
-//
-//
-//
 type environment struct {
 	xbridge *bridge.XBridge
 	model   *mockStore
@@ -110,9 +104,13 @@ func newEnvironment() (*environment, error) {
 		return nil, err
 	}
 	store := newMockStore()
+	if err != nil {
+		return nil, err
+	}
 	vmconfig := contract.DefaultContractConfig()
 	wasmConfig := vmconfig.Wasm
 	wasmConfig.Driver = "ixvm"
+
 	xbridge, err := bridge.New(&bridge.XBridgeConfig{
 		Basedir: basedir,
 		VMConfigs: map[bridge.ContractType]bridge.VMConfig{
@@ -120,6 +118,7 @@ func newEnvironment() (*environment, error) {
 			bridge.TypeNative: &vmconfig.Native,
 			bridge.TypeEvm:    &vmconfig.EVM,
 		},
+		Core:      &chainCore{},
 		XModel:    store.NewCache(),
 		LogWriter: os.Stderr,
 	})
@@ -222,11 +221,6 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 
 	}
 
-	//kctx:=&kcontextImpl{
-	//	ctx:&ctx,
-	//	sandboxnewMockStore(),
-	//}
-	//kctx:=newKContext(ctx,nil)
 	kctx := &kcontextImpl{
 		ctx:          ctx,
 		syscall:      nil,
@@ -261,18 +255,21 @@ func (e *environment) ContractExists(name string) bool {
 	//if !ok {
 	//	return false
 	//}
-	//
+
 	//xcache := e.model.NewCache()
-	//
-	//ctx, err := vm.NewContext(&contract.ContextConfig{
-	//	ContractName:   name,
-	//	XMCache:        xcache,
-	//	ResourceLimits: contract.MaxLimits,
-	//})
-	//if err != nil {
-	//	return false
-	//}
-	//ctx.Release()
+	ctx, err := e.xbridge.NewContext(&contract.ContextConfig{
+		State: e.model,
+		//Initiator:      args.Options.Account,
+		//TransferAmount: args.Options.Amount,
+		ContractName:   name,
+		ResourceLimits: contract.MaxLimits,
+	})
+	if err != nil {
+		//TODO
+		return false
+	}
+	//TODO defer ??
+	ctx.Release()
 	return true
 }
 
@@ -282,6 +279,7 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 		Initiator:      args.Options.Account,
 		TransferAmount: args.Options.Amount,
 		ContractName:   name,
+
 		ResourceLimits: contract.MaxLimits,
 	})
 	if err != nil {

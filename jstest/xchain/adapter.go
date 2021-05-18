@@ -73,6 +73,16 @@ type xchainObject struct {
 	env *environment
 }
 
+func (*xchainObject) GetAccountAddresses(accountName string) ([]string, error) {
+	return []string{}, nil
+}
+
+func (*xchainObject) VerifyContractPermission(initiator string, authRequire []string, contractName, methodName string) (bool, error) {
+	return true, nil
+}
+func (*xchainObject) VerifyContractOwnerPermission(contractName string, authRequire []string) error {
+	return nil
+}
 func newXchainObject() (*xchainObject, error) {
 	env, err := newEnvironment()
 	if err != nil {

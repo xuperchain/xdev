@@ -128,19 +128,19 @@ func (m *mockStore) RWSet() *contract.RWSet {
 }
 
 type mockCache struct {
+	store *mockStore
 }
 
 //
 //type mockIterator struct {
 //}
 
+func (m *mockStore) NewCache() ledger.XMReader {
+	return &mockCache{store: m}
+}
 func (m *mockCache) Get(string, []byte) (*ledger.VersionedData, error) {
 	return &ledger.VersionedData{}, nil
 }
 func (m *mockCache) Select(bucket string, startKey []byte, endKey []byte) (ledger.XMIterator, error) {
 	return &mockIterator{}, nil
-}
-
-func (m *mockStore) NewCache() ledger.XMReader {
-	return &mockCache{}
 }
