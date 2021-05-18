@@ -4,6 +4,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/storage"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/ledger"
 	"github.com/xuperchain/xupercore/protos"
@@ -35,15 +36,26 @@ func (m *mockStore) Get(bucket string, key []byte) ([]byte, error) {
 }
 
 func (m *mockStore) Select(bucket string, startKey []byte, endKey []byte) (contract.Iterator, error) {
-	//start, end := makeRawKey(bucket, startKey), makeRawKey(bucket, endKey)
-	//iter := m.db.NewIterator(&util.Range{
-	//	Start: start,
-	//	Limit: end,
-	//}, nil)
-	//newMockIterator(iter).Value()
-	//return newMockIterator(iter), nil
-	return nil, nil
+	return &mockLedgerIterator{}, nil
 }
+
+type mockLedgerIterator struct {
+}
+
+func (m *mockLedgerIterator) Key() []byte {
+	return []byte("")
+}
+func (m *mockLedgerIterator) Value() []byte {
+	return []byte{}
+}
+
+func (m *mockLedgerIterator) Next() bool { return false }
+
+func (m *mockLedgerIterator) Error() error {
+	return nil
+}
+
+func (m *mockLedgerIterator) Close() {}
 
 type mockIterator struct {
 	iterator.Iterator
@@ -131,16 +143,25 @@ type mockCache struct {
 	store *mockStore
 }
 
-//
-//type mockIterator struct {
-//}
-
 func (m *mockStore) NewCache() ledger.XMReader {
 	return &mockCache{store: m}
 }
 func (m *mockCache) Get(string, []byte) (*ledger.VersionedData, error) {
 	return &ledger.VersionedData{}, nil
 }
+
 func (m *mockCache) Select(bucket string, startKey []byte, endKey []byte) (ledger.XMIterator, error) {
-	return &mockIterator{}, nil
+	return &mockIterator{
+		Iterator: m.store.db.NewIterator(&util.Range{makeRawKey(bucket, startKey), makeRawKey(bucket, endKey)}, nil),
+		data: ledger.VersionedData{
+			PureData: &ledger.PureData{
+				Bucket: "",
+				Key:    nil,
+				Value:  nil,
+			},
+			RefTxid:   []byte(""),
+			RefOffset: 0,
+		},
+		err: nil,
+	}, nil
 }

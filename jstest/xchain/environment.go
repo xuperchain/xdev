@@ -64,37 +64,11 @@ func (k *kcontextImpl) Call(module, contractName, method string, args map[string
 		Message: "ok",
 		Body:    nil,
 	}, nil
-	//var argPairs []*pb.ArgPair
-	//for k, v := range args {
-	//	argPairs = append(argPairs, &pb.ArgPair{
-	//		Key:   k,
-	//		Value: v,
-	//	})
-	//}
-	//request := &pb.ContractCallRequest{
-	//	Header: &pb.SyscallHeader{
-	//		Ctxid: k.ctx.ID,
-	//	},
-	//	Module:   module,
-	//	Contract: contractName,
-	//	Method:   method,
-	//	Args:     argPairs,
-	//}
-	//resp, err := k.syscall.ContractCall(context.TODO(), request)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//return &contract.Response{
-	//	Status:  int(resp.Response.GetStatus()),
-	//	Message: resp.Response.GetMessage(),
-	//	Body:    resp.Response.GetBody(),
-	//}, nil
 }
 
 type environment struct {
 	xbridge *bridge.XBridge
 	model   *mockStore
-	//model *sandbox.MemXModel
 	basedir string
 }
 
