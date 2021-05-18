@@ -70,6 +70,9 @@ github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA
 github.com/cep21/xdgbasedir v0.0.0-20170329171747-21470bfc93b9/go.mod h1:6R3C29d3JonDKVjnlzFv5BGL/bfZP+0I7rKHKwiqKP8=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/chenfengjin/xdev v0.0.0-20210511090326-0defcffa543a/go.mod h1:tm4kiPCqFN/p6M0+7WX+2lilMvo01Xg/xHkeit/mSKQ=
+github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
+github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
+github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cloudflare/bn256 v0.0.0-20200818021822-8aba7cd1ae4c/go.mod h1:T2+nZA01wQim4HFBaXa1hieVkC7OL4fNhiyrX1yMkIE=
 github.com/consensys/bavard v0.1.1/go.mod h1:ffZkLPNQSN3E6u+zpArQSleJ/lsraMwKPCHQymPQJtM=
