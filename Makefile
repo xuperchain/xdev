@@ -1,3 +1,8 @@
+
+all: install
+
+export GO111MODULE=on
+
 build:
 	go build github.com/xuperchain/xdev
 
