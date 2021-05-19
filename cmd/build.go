@@ -219,19 +219,15 @@ func (c *buildCommand) buildPackage(root string) error {
 	}
 
 	// for contract-sdk-cpp developers
-	//TODO c.builder should be initialized for safety
 	err = c.parsePackage(".", xcache, xroot)
 	if err != nil {
 		return err
 	}
 
-	//if xroot !=""{
-
 	err = c.initCompileFlags(xroot)
 	if err != nil {
 		return err
 	}
-	//}
 
 	if c.makeFileOnly {
 		return c.builder.GenerateMakeFile(os.Stdout)
