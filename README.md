@@ -8,30 +8,35 @@ The smart contract compiler and unit test tool  for  [![XuperChain](https://gith
  [![Golang1.13+ ](https://github.com/xuperchain/xdev)](https://github.com/xuperchain/xdev)
  
 ### Install
-    1. Install from source code
-    
+1. Install from source code
+
     ``` bash
-        git clone 
+        git clone https://github.com/xuperchain/xdev.git
+        # build executable xdev into current directory 
+        make build 
+        # install the executable into your $GOBIN
+        make install 
     ```
-    2. Install using `go get`
+2. Install using `go get`
     
     ``` bash
         go get github.com/xuperchain/xdev
     ```
-    3. Install use prebuild distribution release
+3. Install use prebuild distribution release
     
     ``` bash
+        TBD
         curl github.com/
     ```
     
 ### Usage
-    1. Build Single  File contract
+1. Build Single  File contract
 
     ``` bash
         xdev build testdata/counter.cc
     ```
     
-    2. Run Smart Contract Unitest
+2. Run Smart Contract Unitest
     ``` bash
         xdev test testdata/counter.test.js
     ```
