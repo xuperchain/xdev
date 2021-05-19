@@ -208,8 +208,8 @@ func (c *buildCommand) buildPackage(root string) error {
 	if useEmbeddedXchain {
 		//	Use emcc embedded contract-sdk-cpp as default
 		c.ldflags = append(c.ldflags, "--js-library /src/src/xchain/exports.js")
-		c.ldflags = append(c.ldflags, "-lxchain", "-lprotobuf")
-
+		// redundant -lprotobuf-lite for ld symbol resolve order
+		c.ldflags = append(c.ldflags, "-lxchain", "-lprotobuf-lite")
 	} else {
 		// For contract-sdk-cpp developers
 		exportJsPath := filepath.Join(xroot, "src", "xchain", "exports.js")
