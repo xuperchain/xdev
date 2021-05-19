@@ -2,7 +2,7 @@
 all: install
 
 export GO111MODULE=on
-export PATH = ${GOPATH}/bin:$(PATH)
+PATH := ${GOPATH}/bin:$(PATH)
 
 
 build:
