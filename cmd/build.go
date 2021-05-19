@@ -30,9 +30,6 @@ var (
 		"-L/usr/local/lib",
 		"-lprotobuf-lite",
 		"-lpthread",
-		"-lxchain",
-		"-lprotobuf",
-		"--js-library /src/src/xchain/exports.js",
 	}
 )
 
@@ -51,7 +48,10 @@ type buildCommand struct {
 }
 
 func newBuildCommand() *cobra.Command {
-	c := &buildCommand{}
+	c := &buildCommand{
+		ldflags:  defaultLDFlags,
+		cxxFlags: defaultCxxFlags,
+	}
 	cmd := &cobra.Command{
 		Use:   "build",
 		Short: "build command builds a project",
@@ -69,12 +69,16 @@ func newBuildCommand() *cobra.Command {
 }
 
 func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
+	absxroot, err := filepath.Abs(xroot)
+	if err != nil {
+		return err
+	}
 	absroot, err := filepath.Abs(root)
 	if err != nil {
 		return err
 	}
 
-	addons, err := addonModules(xroot, absroot)
+	addons, err := addonModules(absxroot, absroot)
 	if err != nil {
 		return err
 	}
@@ -114,19 +118,9 @@ func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
 	if err != nil {
 		return err
 	}
-	//TODO
-	b.WithCxxFlags(defaultCxxFlags).WithLDFlags(defaultLDFlags)
 	c.builder = b
 	c.entryPkg = pkg
 	return nil
-}
-
-func (c *buildCommand) xdevRoot() (string, error) {
-	xroot := os.Getenv("XDEV_ROOT")
-	if xroot != "" {
-		return filepath.Abs(xroot)
-	}
-	return xroot, nil
 }
 
 func (c *buildCommand) xdevCacheDir() (string, error) {
@@ -139,15 +133,6 @@ func (c *buildCommand) xdevCacheDir() (string, error) {
 		return "", err
 	}
 	return filepath.Join(homedir, ".xdev-cache"), nil
-}
-
-func (c *buildCommand) initCompileFlags(xroot string) error {
-	c.cxxFlags = append([]string{}, defaultCxxFlags...)
-	c.ldflags = append([]string{}, defaultLDFlags...)
-
-	exportJsPath := filepath.Join(xroot, "src", "xchain", "exports.js")
-	c.ldflags = append(c.ldflags, "--js-library "+exportJsPath)
-	return nil
 }
 
 func (c *buildCommand) build(args []string) error {
@@ -192,7 +177,6 @@ func addonModules(xroot, pkgpath string) ([]mkfile.DependencyDesc, error) {
 		return []mkfile.DependencyDesc{xchainModule(xroot)}, nil
 	}
 	return []mkfile.DependencyDesc{}, nil
-
 }
 
 func (c *buildCommand) buildPackage(root string) error {
@@ -202,12 +186,6 @@ func (c *buildCommand) buildPackage(root string) error {
 		return err
 	}
 	defer os.Chdir(wd)
-
-	xroot, err := c.xdevRoot()
-	if err != nil {
-		return err
-	}
-
 	xcache, err := c.xdevCacheDir()
 	if err != nil {
 		return err
@@ -218,13 +196,27 @@ func (c *buildCommand) buildPackage(root string) error {
 		return err
 	}
 
-	// for contract-sdk-cpp developers
-	err = c.parsePackage(".", xcache, xroot)
-	if err != nil {
-		return err
+	xroot := os.Getenv("XDEV_ROOT")
+	useEmbeddedXchain := false
+	if xroot == "" {
+		useEmbeddedXchain = true
+	}
+	if _, err := os.Stat(xroot); err != nil {
+		useEmbeddedXchain = true
 	}
 
-	err = c.initCompileFlags(xroot)
+	if useEmbeddedXchain {
+		//	Use emcc embedded contract-sdk-cpp as default
+		c.ldflags = append(c.ldflags, "--js-library /src/src/xchain/exports.js")
+		c.ldflags = append(c.ldflags, "-lxchain", "-lprotobuf")
+
+	} else {
+		// For contract-sdk-cpp developers
+		exportJsPath := filepath.Join(xroot, "src", "xchain", "exports.js")
+		c.ldflags = append(c.ldflags, "--js-library "+exportJsPath)
+	}
+
+	err = c.parsePackage(".", xcache, xroot)
 	if err != nil {
 		return err
 	}
@@ -318,11 +310,7 @@ func (c *buildCommand) buildFiles(files []string) error {
 		}
 	}
 
-	err = c.buildPackage(basedir)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.buildPackage(basedir)
 }
 
 func cpfile(dest, src string) error {
