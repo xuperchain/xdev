@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultDockerImage = "hub.baidubce.com/xchain/emcc"
+	defaultDockerImage = "hub.baidubce.com/xchain/emcc:1.0.0"
 )
 
 type Runner struct {
