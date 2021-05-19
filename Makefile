@@ -2,6 +2,8 @@
 all: install
 
 export GO111MODULE=on
+PATH := ${GOPATH}/bin:$(PATH)
+
 
 build:
 	go build github.com/xuperchain/xdev
