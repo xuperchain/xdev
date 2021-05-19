@@ -52,9 +52,3 @@ func (c *chainCore) QueryBlockByHeight(height int64) (*pb.InternalBlock, error) 
 func (c *chainCore) QueryLastBlock() (*pb.InternalBlock, error) {
 	return new(pb.InternalBlock), nil
 }
-
-// CrossQuery query contract from otherchain
-//TODO @fengjin
-//func (c *chainCore) ResolveChain(chainName string) (*pb.CrossQueryMeta, error) {
-//	return new(pb.CrossQueryMeta), nil
-//}

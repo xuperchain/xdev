@@ -51,7 +51,6 @@ type mockLedgerIterator struct {
 }
 
 func (m *mockLedgerIterator) Key() []byte {
-	//TODO @fengjin
 	return bytes.Split(m.Iterator.Key(), []byte("/"))[1]
 }
 func (m *mockLedgerIterator) Value() []byte {
