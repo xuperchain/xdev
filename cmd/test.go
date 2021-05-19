@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/xuperchain/xdev/jstest"
 	"github.com/xuperchain/xdev/jstest/xchain"
-	"github.com/xuperchain/xupercore/lib/logs"
 )
 
 type testCommand struct {
@@ -23,7 +22,7 @@ func newTestCommand() *cobra.Command {
 		Short: "test perform unit test",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logs.SetLogHandle(&logs.DiscardHandler{})
+			//logs.SetLogHandle(&logs.DiscardHandler{})
 			err := c.test(args)
 			if err != nil {
 				return err
