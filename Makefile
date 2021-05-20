@@ -5,14 +5,16 @@ export GO111MODULE=on
 
 
 build:
-	ls bin || mkdir bin
+	@ls bin 2>&1 >/dev/null || mkdir bin
 	go build -o bin/xdev github.com/xuperchain/xdev
 
 install:
 	go install github.com/xuperchain/xdev
 
 test:build
+	# go test 
 	go test ./...
-	bin/xdev test jstest/testdata/jstest.test.js
+	bin/xdev build -o testdata/bin/counter-c.wasm testdata/counter.cc
+	bin/xdev test testdata/counter.test.js 
 lint:
 	go vet ./...
