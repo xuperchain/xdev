@@ -5,8 +5,10 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	log15 "github.com/xuperchain/log15"
 	"github.com/xuperchain/xdev/jstest"
 	"github.com/xuperchain/xdev/jstest/xchain"
+	"github.com/xuperchain/xuperchain/core/common/log"
 )
 
 type testCommand struct {
@@ -22,7 +24,7 @@ func newTestCommand() *cobra.Command {
 		Short: "test perform unit test",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			//logs.SetLogHandle(&logs.DiscardHandler{})
+			log.DefaultLogger.SetHandler(log15.DiscardHandler())
 			err := c.test(args)
 			if err != nil {
 				return err

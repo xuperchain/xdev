@@ -22,7 +22,7 @@ Test("Increase", function (t) {
 
 Test("Get", function (t) {
     var c = deploy()
-    c.Invoke("Increase", { "key": "xchain" });
-    var resp = c.Invoke("iet", { "key": "xchain" })
+    c.Invoke("increase", { "key": "xchain" });
+    var resp = c.Invoke("get", { "key": "xchain" })
     assert.equal(resp.Body, "1")
 })
