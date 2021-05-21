@@ -107,8 +107,8 @@ func (m *mockIterator) Value() *ledger.VersionedData {
 func (m *mockStore) AddEvent(...*protos.ContractEvent) {
 	panic("not impl")
 }
-func (m *mockStore) Del(string, []byte) error {
-	return nil
+func (m *mockStore) Del(bucket string, key []byte) error {
+	return m.db.Delete(makeRawKey(bucket, key), nil)
 }
 func (m *mockStore) Flush() error {
 	return nil
