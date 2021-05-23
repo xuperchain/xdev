@@ -2,6 +2,7 @@ package xchain
 
 import (
 	"encoding/json"
+	"github.com/xuperchain/xupercore/kernel/contract/sandbox"
 	"github.com/xuperchain/xupercore/protos"
 	"io/ioutil"
 	"os"
@@ -17,7 +18,7 @@ import (
 
 type environment struct {
 	xbridge *bridge.XBridge
-	model   *mockStore
+	model   contract.StateSandbox
 	basedir string
 }
 
@@ -26,7 +27,8 @@ func newEnvironment() (*environment, error) {
 	if err != nil {
 		return nil, err
 	}
-	store := newMockStore()
+	//store := newMockStore()
+	store := sandbox.NewMemXModel()
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +44,7 @@ func newEnvironment() (*environment, error) {
 			bridge.TypeEvm:    &vmconfig.EVM,
 		},
 		Core:      &chainCore{},
-		XModel:    store.NewCache(),
+		XModel:    store,
 		LogWriter: os.Stderr,
 	})
 	if err != nil {
@@ -52,7 +54,7 @@ func newEnvironment() (*environment, error) {
 
 	return &environment{
 		xbridge: xbridge,
-		model:   store,
+		model:   sandbox.NewXModelCache(store),
 		basedir: basedir,
 	}, nil
 }
@@ -114,7 +116,6 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 		used:         contract.Limits{0, 0, 0, 0},
 		limit:        contract.MaxLimits,
 	}
-	//TODO
 	resp, _, err := e.xbridge.DeployContract(kctx)
 	if err != nil {
 		return nil, err
@@ -174,7 +175,7 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 		return newContractResponse(resp), nil
 	}
 
-	if err != nil {
+	if err := e.model.Flush(); err != nil {
 		return nil, err
 	}
 

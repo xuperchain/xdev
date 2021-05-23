@@ -46,7 +46,7 @@ Test("put", function (t) {
 Test("get", function (t) {
     var c = deploy();
     t.Run("not_found", function (tt) {
-        resp = c.Invoke("get", { "key": "k1" });
+        resp = c.Invoke("get", { "key": "not_exists" });
         assert.ok(resp.Status != 200);
     })
 
