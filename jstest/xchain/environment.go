@@ -101,22 +101,35 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	}
 	dargs["contract_desc"] = desc
 
-	ctx := &bridge.Context{
-		ContractName:   args.Name,
-		ResourceLimits: contract.MaxLimits,
-		Args:           dargs,
-		CanInitialize:  true,
-	}
+	//ctx := &bridge.Context{
+	//	ContractName:   args.Name,
+	//	ResourceLimits: contract.MaxLimits,
+	//	Args:           dargs,
+	//	CanInitialize:  true,
+	//}
 
-	kctx := &kcontextImpl{
-		ctx:          ctx,
-		syscall:      nil,
-		StateSandbox: e.model,
-		ChainCore:    new(chainCore),
-		used:         contract.Limits{0, 0, 0, 0},
-		limit:        contract.MaxLimits,
-	}
-	resp, _, err := e.xbridge.DeployContract(kctx)
+	//kctx := &kcontextImpl{
+	//	ctx:          ctx,
+	//	syscall:      nil,
+	//	StateSandbox: e.model,
+	//	ChainCore:    new(chainCore),
+	//	used:         contract.Limits{0, 0, 0, 0},
+	//	limit:        contract.MaxLimits,
+	//}
+	ctx, err := e.xbridge.NewContext(&contract.ContextConfig{
+		//State:                 nil,
+		//Initiator:             "",
+		//AuthRequire:           nil,
+		//Caller:                "",
+		Module: "xkernel",
+		//ContractName: "deploy",
+		//ResourceLimits:        contract.Limits{},
+		//CanInitialize:         false,
+		//TransferAmount:        "",
+		//ContractSet:           nil,
+		//ContractCodeFromCache: false,
+	})
+	resp, err := ctx.Invoke("deploy", map[string][]byte{})
 	if err != nil {
 		return nil, err
 	}
