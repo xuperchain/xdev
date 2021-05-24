@@ -9,7 +9,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/robertkrimen/otto"
 
-	"github.com/xuperchain/xdev/lib/jstest"
+	"github.com/xuperchain/xdev/jstest"
 	"github.com/xuperchain/xuperchain/core/contract/bridge"
 	"github.com/xuperchain/xuperchain/core/contract/evm/abi"
 )
