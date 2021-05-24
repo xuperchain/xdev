@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 	log15 "github.com/xuperchain/log15"
-	"github.com/xuperchain/xdev/lib/jstest"
-	"github.com/xuperchain/xdev/lib/jstest/xchain"
+	"github.com/xuperchain/xdev/jstest"
+	"github.com/xuperchain/xdev/jstest/xchain"
 	"github.com/xuperchain/xuperchain/core/common/log"
 )
 
