@@ -6,7 +6,7 @@ function deploy() {
         code: "./features.wasm",
         lang: "c",
         init_args: {},
-        options: { "account": "xchain" }
+        options: { "account": "XC1111111111111111@xuper" }
     });
 }
 
@@ -18,7 +18,7 @@ Test("deploy", function (t) {
                 code: "./not_exists.wasm",
                 lang: "c",
                 init_args: {},
-                options: { "account": "xchain" }
+                options: { "account": "XC1111111111111111@xuper" }
             })
         })
     })
@@ -30,7 +30,7 @@ Test("deploy", function (t) {
                 code: "./features.wasm",
                 lang: "go",
                 init_args: {},
-                options: { "account": "xchain" }
+                options: { "account": "XC1111111111111111@xuper"  }
             })
         })
     })
@@ -93,7 +93,8 @@ Test("call", function (t) {
             name: "contract1",
             code: "./features.wasm",
             lang: "c",
-            init_args: {}
+            init_args: {},
+            options: { "account": "XC1111111111111111@xuper" }
         });
         c1.Invoke("put", { "k1": "v1" })
 
@@ -101,7 +102,8 @@ Test("call", function (t) {
             name: "contract2",
             code: "./features.wasm",
             lang: "c",
-            init_args: {}
+            init_args: {},
+            options: { "account": "XC1111111111111111@xuper"}
         });
         resp = c2.Invoke("call", {
             "contract": "contract1",

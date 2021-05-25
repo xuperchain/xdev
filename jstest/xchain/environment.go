@@ -2,18 +2,28 @@ package xchain
 
 import (
 	"encoding/json"
+	"github.com/xuperchain/xupercore/kernel/common/xcontext"
 	"github.com/xuperchain/xupercore/kernel/contract"
-	//"github.com/xuperchain/xupercore/kernel/contract/sandbox"
+	"github.com/xuperchain/xupercore/kernel/permission/acl"
+	actx "github.com/xuperchain/xupercore/kernel/permission/acl/context"
 	"github.com/xuperchain/xupercore/protos"
 	"io/ioutil"
 	"os"
 
 	"github.com/golang/protobuf/proto"
+
+	_ "github.com/xuperchain/xupercore/bcs/consensus/pow"
+	_ "github.com/xuperchain/xupercore/bcs/consensus/single"
+	_ "github.com/xuperchain/xupercore/bcs/consensus/tdpos"
+	_ "github.com/xuperchain/xupercore/bcs/consensus/xpoa"
 	_ "github.com/xuperchain/xupercore/bcs/contract/evm"
 	_ "github.com/xuperchain/xupercore/bcs/contract/native"
 	_ "github.com/xuperchain/xupercore/bcs/contract/xvm"
+	_ "github.com/xuperchain/xupercore/bcs/network/p2pv1"
+	_ "github.com/xuperchain/xupercore/bcs/network/p2pv2"
 	_ "github.com/xuperchain/xupercore/kernel/contract/kernel"
 	_ "github.com/xuperchain/xupercore/kernel/contract/manager"
+	_ "github.com/xuperchain/xupercore/lib/crypto/client"
 	_ "github.com/xuperchain/xupercore/lib/storage/kvdb/leveldb"
 )
 
@@ -44,10 +54,13 @@ func newEnvironment() (*environment, error) {
 	if err != nil {
 		return nil, err
 	}
+	_,_=acl.NewACLManager(&actx.AclCtx{
+		BaseCtx:  xcontext.BaseCtx{},
+		BcName:   "xuper",
+		Ledger:   &LedgerRely{reader:XMSnapshotReader{}},
+		Contract: m,
+	})
 
-	if err != nil {
-		return nil, err
-	}
 	return &environment{
 		manager: m,
 		state:   store,
@@ -78,7 +91,45 @@ func convertArgs(ori map[string]interface{}) map[string][]byte {
 	}
 	return ret
 }
+func (e*environment)InitAccount()error{
 
+	state, err := e.manager.NewStateSandbox(&contract.SandboxConfig{
+		XMReader: e.state.State(),
+	})
+	ctx, err := e.manager.NewContext(&contract.ContextConfig{
+		State:                 state,
+		Initiator:             "",
+		AuthRequire:           nil,
+		Caller:                "",
+		Module:                "xkernel",
+		ContractName:          "$acl",
+		ResourceLimits:        contract.MaxLimits,
+		CanInitialize:         true,
+		TransferAmount:        "100000",
+		ContractSet:           nil,
+		ContractCodeFromCache: false,
+	})
+	simpleACL := `
+        {
+            "pm": {
+                "rule": 1,
+                "acceptValue": 1.0
+            },
+            "aksWeight": {
+                "` + "xchain" + `": 1.0
+            }
+        }
+        `
+	_, err = ctx.Invoke("NewAccount", map[string][]byte{
+		"acl":[]byte(simpleACL),
+		"account_name":[]byte("1111111111111111"),
+	})
+	if err != nil {
+		return  err
+	}
+	e.state.Commit(state)
+	return nil
+}
 func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 
 	dargs := make(map[string][]byte)

@@ -78,6 +78,9 @@ func newXchainObject() (*xchainObject, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err:=env.InitAccount();err!=nil{
+		return nil, err
+	}
 	return &xchainObject{
 		env: env,
 	}, nil
