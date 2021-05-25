@@ -2,7 +2,6 @@ package xchain
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/contract/sandbox"
 	"github.com/xuperchain/xupercore/protos"
@@ -39,41 +38,33 @@ func newEnvironment() (*environment, error) {
 	}
 	//store := newMockStore()
 	store := sandbox.NewMemXModel()
-	if err != nil {
-		return nil, err
-	}
+	config := contract.DefaultContractConfig()
+	config.Wasm.Driver = "ixvm"
 	m, err := contract.CreateManager("default", &contract.ManagerConfig{
 		Basedir:  basedir,
 		BCName:   "xuper",
 		EnvConf:  nil,
 		Core:     &chainCore{},
 		XMReader: store,
-		Config:   contract.DefaultContractConfig(),
+		Config:   config,
 	})
 	if err != nil {
-
+		return nil, err
 	}
-	//ctx, err := m.NewContext(&contract.ContextConfig{
-	//	State:                 sandbox.NewXModelCache(store),
+	// Inject testing account
+	//ctxr,er:=m.NewContext(contract.ContextConfig{
+	//	State:                 store,
 	//	Initiator:             "",
 	//	AuthRequire:           nil,
 	//	Caller:                "",
-	//	Module:                "xkernel",
-	//	ContractName:          "$contract",
+	//	Module:                "",
+	//	ContractName:          "",
 	//	ResourceLimits:        contract.Limits{},
-	//	CanInitialize:         true,
+	//	CanInitialize:         false,
 	//	TransferAmount:        "",
 	//	ContractSet:           nil,
 	//	ContractCodeFromCache: false,
 	//})
-	//if err != nil {
-	//
-	//}
-	//resp, err := ctx.Invoke("deployContract", map[string][]byte{})
-	//if err != nil {
-	//
-	//}
-	//_ = resp
 
 	return &environment{
 		manager: m,
@@ -176,34 +167,38 @@ type invokeArgs struct {
 //}
 
 func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, error) {
-	return nil, errors.New("")
-	//ctx, err := e.xbridge.NewContext(&contract.ContextConfig{
-	//	State:          e.model,
-	//	Initiator:      args.Options.Account,
-	//	TransferAmount: args.Options.Amount,
-	//	ContractName:   name,
-	//
-	//	ResourceLimits: contract.MaxLimits,
-	//})
-	//if err != nil {
-	//	return nil, err
-	//}
-	//defer ctx.Release()
-	//
-	//resp, err := ctx.Invoke(args.Method, args.trueArgs)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//if resp.Status >= contract.StatusErrorThreshold {
-	//	return newContractResponse(resp), nil
-	//}
-	//
-	//if err := e.model.Flush(); err != nil {
-	//	return nil, err
-	//}
+	ctx, err := e.manager.NewContext(&contract.ContextConfig{
+		State:                 e.model,
+		Initiator:             "",
+		AuthRequire:           nil,
+		Caller:                "",
+		Module:                "",
+		ContractName:          name,
+		ResourceLimits:        contract.MaxLimits,
+		CanInitialize:         false,
+		TransferAmount:        "",
+		ContractSet:           nil,
+		ContractCodeFromCache: false,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp, err := ctx.Invoke(args.Method, args.trueArgs)
+	if err != nil {
+		return nil, err
+	}
+	//TODO
+	defer ctx.Release()
 
-	//return newContractResponse(resp), nil
+	if resp.Status >= contract.StatusErrorThreshold {
+		return newContractResponse(resp), nil
+	}
+
+	if err := e.model.Flush(); err != nil {
+		return nil, err
+	}
+
+	return newContractResponse(resp), nil
 }
 
 func (e *environment) Close() {
