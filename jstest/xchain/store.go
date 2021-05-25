@@ -6,7 +6,6 @@ import (
 	"github.com/xuperchain/xupercore/kernel/contract/sandbox"
 	"github.com/xuperchain/xupercore/kernel/ledger"
 	"github.com/xuperchain/xupercore/kernel/permission/acl/utils"
-	"io/ioutil"
 )
 
 const (
@@ -14,20 +13,15 @@ const (
 )
 
 type mockStore struct {
-	basedir string
+	//basedir string
 
 	state *sandbox.MemXModel
 }
 
 func NewmockStore() *mockStore {
-	basedir, err := ioutil.TempDir("", "xdev-test")
-	if err != nil {
-		panic(err)
-	}
 	state := sandbox.NewMemXModel()
 	store := &mockStore{
-		basedir: basedir,
-		state:   state,
+		state: state,
 	}
 	store.initAccount()
 	return store

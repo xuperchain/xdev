@@ -3,6 +3,7 @@ package xchain
 import (
 	"encoding/json"
 	"github.com/xuperchain/xupercore/kernel/contract"
+	//"github.com/xuperchain/xupercore/kernel/contract/sandbox"
 	"github.com/xuperchain/xupercore/protos"
 	"io/ioutil"
 	"os"
@@ -18,7 +19,7 @@ import (
 
 type environment struct {
 	manager contract.Manager
-	model   contract.StateSandbox
+	state   *mockStore
 	basedir string
 }
 
@@ -44,23 +45,23 @@ func newEnvironment() (*environment, error) {
 		return nil, err
 	}
 
-	state, err := m.NewStateSandbox(&contract.SandboxConfig{
-		XMReader: store.State(),
-	})
 	if err != nil {
 		return nil, err
 	}
 	return &environment{
 		manager: m,
-		model:   state,
+		state:   store,
 		basedir: basedir,
 	}, nil
 }
 
 type deployArgs struct {
-	Name     string                 `json:"name"`
-	Code     string                 `json:"code"`
-	Lang     string                 `json:"lang"`
+	Name string `json:"name"`
+	Code string `json:"code"`
+	//Deprecated: using Runtime instead
+	Lang string `json:"lang"`
+	// Runtime specify runtime, has priority than lang
+	Runtime  string                 `json:"runtime"`
 	InitArgs map[string]interface{} `json:"init_args"`
 	Type     string                 `json:"type"`
 	ABIFile  string                 `json:"abi"`
@@ -92,23 +93,31 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	dargs["init_args"] = initArgs
 
 	descpb := new(protos.WasmCodeDesc)
-	descpb.Runtime = args.Lang
+
+	descpb.Runtime = args.Runtime
+	if descpb.Runtime == "" {
+		descpb.Runtime = args.Lang
+	}
 	descpb.ContractType = args.Type
+
 	desc, err := proto.Marshal(descpb)
 	if err != nil {
 		return nil, err
 	}
 	dargs["contract_desc"] = desc
 
+	state, err := e.manager.NewStateSandbox(&contract.SandboxConfig{
+		XMReader: e.state.State(),
+	})
 	ctx, err := e.manager.NewContext(&contract.ContextConfig{
-		State:                 e.model,
+		State:                 state,
 		Initiator:             args.Options.Account,
 		AuthRequire:           nil,
 		Caller:                "",
 		Module:                "xkernel",
 		ContractName:          "$contract",
 		ResourceLimits:        contract.MaxLimits,
-		CanInitialize:         false,
+		CanInitialize:         true,
 		TransferAmount:        args.Options.Amount,
 		ContractSet:           nil,
 		ContractCodeFromCache: false,
@@ -117,7 +126,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	e.state.Commit(state)
 	return newContractResponse(resp), nil
 }
 
@@ -156,8 +165,12 @@ func (e *environment) ContractExists(name string) bool {
 }
 
 func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, error) {
+
+	state, err := e.manager.NewStateSandbox(&contract.SandboxConfig{
+		XMReader: e.state.State(),
+	})
 	ctx, err := e.manager.NewContext(&contract.ContextConfig{
-		State:                 e.model,
+		State:                 state,
 		Initiator:             args.Options.Account,
 		AuthRequire:           nil,
 		Caller:                "",
@@ -165,7 +178,7 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 		ContractName:          name,
 		ResourceLimits:        contract.MaxLimits,
 		CanInitialize:         false,
-		TransferAmount:        "",
+		TransferAmount:        args.Options.Amount,
 		ContractSet:           nil,
 		ContractCodeFromCache: false,
 	})
@@ -176,13 +189,13 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 	if err != nil {
 		return nil, err
 	}
-	//TODO
 	defer ctx.Release()
 
 	if resp.Status >= contract.StatusErrorThreshold {
 		return newContractResponse(resp), nil
 	}
-	//e.model.
+	//TODO
+	e.state.Commit(state)
 	return newContractResponse(resp), nil
 }
 
