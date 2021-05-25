@@ -1,122 +1,78 @@
 package xchain
 
 import (
+	"encoding/hex"
 	"fmt"
-	"github.com/xuperchain/xupercore/bcs/contract/evm/abi"
-	"github.com/xuperchain/xupercore/kernel/contract/bridge"
 	"io/ioutil"
-	"math/big"
 	"testing"
 
-	"encoding/hex"
-	"errors"
+	"github.com/mitchellh/mapstructure"
+	"github.com/robertkrimen/otto"
+
 	"github.com/xuperchain/xdev/jstest"
+	"github.com/xuperchain/xuperchain/core/contract/bridge"
+	"github.com/xuperchain/xuperchain/core/contract/evm/abi"
 )
 
-type xchainAdapter struct {
+type contractObject struct {
+	env  *environment
+	abi  *abi.ABI
+	Name string
+	Type string
 }
 
-// NewAdapter is the xchain adapter
-func NewAdapter() jstest.Adapter {
-	return new(xchainAdapter)
-}
+// func (c *contractObject) Invoke(method string, args map[string]string, option InvokeOptions) *contract.Response {
+func (c *contractObject) Invoke(call otto.FunctionCall) otto.Value {
+	var args invokeArgs
 
-func (x *xchainAdapter) OnSetup(r *jstest.Runner) {
-	r.GlobalObject().Set("Xchain", func() *xchainObject {
-		x, err := newXchainObject()
+	method := call.Argument(0).String()
+	args.Method = method
+
+	if !call.Argument(1).IsObject() {
+		jstest.Throws("expect method args with object type")
+	}
+	export, _ := call.Argument(1).Export()
+	err := mapstructure.Decode(export, &args.Args)
+	if err != nil {
+		jstest.Throw(err)
+	}
+	if c.Type != string(bridge.TypeEvm) {
+		args.trueArgs = convertArgs(args.Args)
+	} else {
+		if method != "" {
+			input, err := c.abi.Encode(method, args.Args)
+			if err != nil {
+				jstest.Throw(fmt.Errorf("abi encode error:%s", err))
+			}
+			args.trueArgs = map[string][]byte{
+				"input": input,
+			}
+		}
+	}
+
+	if call.Argument(2).IsObject() {
+		export, _ := call.Argument(2).Export()
+		err := mapstructure.Decode(export, &args.Options)
 		if err != nil {
 			jstest.Throw(err)
 		}
-		return x
-	})
-}
-
-func (x *xchainAdapter) OnTeardown(r *jstest.Runner) {
-}
-
-func (x *xchainAdapter) OnTestCase(r *jstest.Runner, test jstest.TestCase) jstest.TestCase {
-	body := func(t *testing.T) {
-		xctx, err := newXchainObject()
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer xctx.env.Close()
-
-		if !r.Option.Quiet {
-			// TODO: add log output
-		}
-		// reset xchain environment
-		r.GlobalObject().Set("xchain", xctx)
-
-		test.F(t)
 	}
-	return jstest.TestCase{
-		Name: test.Name,
-		F:    body,
+
+	resp, err := c.env.Invoke(c.Name, args)
+	if err != nil {
+		jstest.Throw(err)
 	}
+	v, err := call.Otto.ToValue(resp)
+	if err != nil {
+		jstest.Throw(err)
+	}
+	return v
 }
-
-var (
-	errUnimplemented = errors.New("unimplemented")
-)
-
-type chainCore struct {
-}
-
-// GetAccountAddress get addresses associated with account name
-func (c *chainCore) GetAccountAddresses(accountName string) ([]string, error) {
-	return []string{}, nil
-}
-
-// GetBalance get balance from utxo
-func (c *chainCore) GetBalance(addr string) (*big.Int, error) {
-	return big.NewInt(0), nil
-}
-
-// VerifyContractPermission verify permission of calling contract
-func (c *chainCore) VerifyContractPermission(initiator string, authRequire []string, contractName, methodName string) (bool, error) {
-	return true, nil
-}
-
-// VerifyContractOwnerPermission verify contract ownership permisson
-func (c *chainCore) VerifyContractOwnerPermission(contractName string, authRequire []string) error {
-	return nil
-}
-
-// QueryTransaction query confirmed tx
-//func (c *chainCore) QueryTransaction(txid []byte) (*pb.Transaction, error) {
-//	return new(pb.Transaction), nil
-//}
-
-// QueryBlock query block
-//func (c *chainCore) QueryBlock(blockid []byte) (*pb.InternalBlock, error) {
-//	return new(pb.InternalBlock), nil
-//}
-
-// QueryBlockByHeight query block by height
-//func (c *chainCore) QueryBlockByHeight(height int64) (*pb.InternalBlock, error) {
-//	return new(pb.InternalBlock), nil
-//}
-
-// QueryLastBlock query last block
-//func (c *chainCore) QueryLastBlock() (*pb.InternalBlock, error) {
-//	return new(xledgerpb.InternalBlock), nil
-//}
 
 type xchainObject struct {
 	env *environment
 }
 
-func (*xchainObject) GetAccountAddresses(accountName string) ([]string, error) {
-	return []string{}, nil
-}
-
-func (*xchainObject) VerifyContractPermission(initiator string, authRequire []string, contractName, methodName string) (bool, error) {
-	return true, nil
-}
-func (*xchainObject) VerifyContractOwnerPermission(contractName string, authRequire []string) error {
-	return nil
-}
 func newXchainObject() (*xchainObject, error) {
 	env, err := newEnvironment()
 	if err != nil {
@@ -189,5 +145,48 @@ func (x *xchainObject) Deploy(args deployArgs) *contractObject {
 		abi:  enc,
 		Name: args.Name,
 		Type: args.Type,
+	}
+}
+
+type xchainAdapter struct {
+}
+
+// NewAdapter is the xchain adapter
+func NewAdapter() jstest.Adapter {
+	return new(xchainAdapter)
+}
+
+func (x *xchainAdapter) OnSetup(r *jstest.Runner) {
+	r.GlobalObject().Set("Xchain", func() *xchainObject {
+		x, err := newXchainObject()
+		if err != nil {
+			jstest.Throw(err)
+		}
+		return x
+	})
+}
+
+func (x *xchainAdapter) OnTeardown(r *jstest.Runner) {
+}
+
+func (x *xchainAdapter) OnTestCase(r *jstest.Runner, test jstest.TestCase) jstest.TestCase {
+	body := func(t *testing.T) {
+		xctx, err := newXchainObject()
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer xctx.env.Close()
+
+		if !r.Option.Quiet {
+			// TODO: add log output
+		}
+		// reset xchain environment
+		r.GlobalObject().Set("xchain", xctx)
+
+		test.F(t)
+	}
+	return jstest.TestCase{
+		Name: test.Name,
+		F:    body,
 	}
 }
