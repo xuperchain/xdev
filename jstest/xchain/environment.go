@@ -133,27 +133,32 @@ type invokeArgs struct {
 	Options  invokeOptions
 }
 
-//func (e *environment) ContractExists(name string) bool {
-//
-//	//ctx, err := e.xbridge.NewContext(&contract.ContextConfig{
-//	//	State:          e.model,
-//	//	ContractName:   name,
-//	//	ResourceLimits: contract.MaxLimits,
-//	//})
-//	//if err != nil {
-//	//	//TODO
-//	//	return false
-//	//}
-//	////TODO defer ??
-//	//ctx.Release()
-//	//return true
-//	return false
-//}
+//TODO add test
+func (e *environment) ContractExists(name string) bool {
+	ctx, err := e.manager.NewContext(&contract.ContextConfig{
+		State:                 nil,
+		Initiator:             "",
+		AuthRequire:           nil,
+		Caller:                "",
+		Module:                "",
+		ContractName:          name,
+		ResourceLimits:        contract.Limits{},
+		CanInitialize:         false,
+		TransferAmount:        "",
+		ContractSet:           nil,
+		ContractCodeFromCache: false,
+	})
+	defer ctx.Release()
+	if err != nil {
+		return false
+	}
+	return true
+}
 
 func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, error) {
 	ctx, err := e.manager.NewContext(&contract.ContextConfig{
 		State:                 e.model,
-		Initiator:             "",
+		Initiator:             args.Options.Account,
 		AuthRequire:           nil,
 		Caller:                "",
 		Module:                "",
@@ -177,11 +182,7 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 	if resp.Status >= contract.StatusErrorThreshold {
 		return newContractResponse(resp), nil
 	}
-
-	if err := e.model.Flush(); err != nil {
-		return nil, err
-	}
-
+	//e.model.
 	return newContractResponse(resp), nil
 }
 

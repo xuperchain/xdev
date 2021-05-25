@@ -2,6 +2,7 @@ package xchain
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/xuperchain/xdev/jstest"
 	"github.com/xuperchain/xupercore/bcs/contract/evm/abi"
 	"github.com/xuperchain/xupercore/kernel/contract/bridge"
@@ -33,14 +34,13 @@ func newXchainObject() (*xchainObject, error) {
 }
 
 func (x *xchainObject) Contract(name string) *contractObject {
-	return nil
-	//if !x.env.ContractExists(name) {
-	//	jstest.Throw(fmt.Errorf("contract %s not found", name))
-	//}
-	//return &contractObject{
-	//	Name: name,
-	//	env:  x.env,
-	//}
+	if !x.env.ContractExists(name) {
+		jstest.Throw(fmt.Errorf("contract %s not found", name))
+	}
+	return &contractObject{
+		Name: name,
+		env:  x.env,
+	}
 }
 
 func (x *xchainObject) Deploy(args deployArgs) *contractObject {
