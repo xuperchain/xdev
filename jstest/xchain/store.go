@@ -13,8 +13,6 @@ const (
 )
 
 type mockStore struct {
-	//basedir string
-
 	state *sandbox.MemXModel
 }
 
