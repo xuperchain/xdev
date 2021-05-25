@@ -9,7 +9,6 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/robertkrimen/otto v0.0.0-20191219234010-c382bd3c16ff
 	github.com/spf13/cobra v1.1.3
-	github.com/syndtr/goleveldb v1.0.1-0.20200815110645-5c35d600f0ca
 	github.com/xuperchain/xuperchain v0.0.0-20210511082518-b2d6bd248cc3
 	github.com/xuperchain/xupercore v0.0.0-20210427110058-ad573e2286cc
 )
