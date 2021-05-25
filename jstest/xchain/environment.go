@@ -3,7 +3,7 @@ package xchain
 import (
 	"encoding/json"
 	"github.com/xuperchain/xupercore/kernel/contract"
-	"github.com/xuperchain/xupercore/kernel/contract/sandbox"
+	//"github.com/xuperchain/xupercore/kernel/contract/sandbox"
 	"github.com/xuperchain/xupercore/protos"
 	"io/ioutil"
 	"os"
@@ -25,7 +25,6 @@ import (
 )
 
 type environment struct {
-	//xbridge *bridge.XBridge
 	manager contract.Manager
 	model   contract.StateSandbox
 	basedir string
@@ -36,39 +35,32 @@ func newEnvironment() (*environment, error) {
 	if err != nil {
 		return nil, err
 	}
-	//store := newMockStore()
-	store := sandbox.NewMemXModel()
+	store := NewmockStore()
+
 	config := contract.DefaultContractConfig()
 	config.Wasm.Driver = "ixvm"
+
 	m, err := contract.CreateManager("default", &contract.ManagerConfig{
 		Basedir:  basedir,
 		BCName:   "xuper",
 		EnvConf:  nil,
 		Core:     &chainCore{},
-		XMReader: store,
+		XMReader: store.State(),
 		Config:   config,
 	})
 	if err != nil {
 		return nil, err
 	}
-	// Inject testing account
-	//ctxr,er:=m.NewContext(contract.ContextConfig{
-	//	State:                 store,
-	//	Initiator:             "",
-	//	AuthRequire:           nil,
-	//	Caller:                "",
-	//	Module:                "",
-	//	ContractName:          "",
-	//	ResourceLimits:        contract.Limits{},
-	//	CanInitialize:         false,
-	//	TransferAmount:        "",
-	//	ContractSet:           nil,
-	//	ContractCodeFromCache: false,
-	//})
 
+	state, err := m.NewStateSandbox(&contract.SandboxConfig{
+		XMReader: store.State(),
+	})
+	if err != nil {
+		return nil, err
+	}
 	return &environment{
 		manager: m,
-		model:   sandbox.NewXModelCache(store),
+		model:   state,
 		basedir: basedir,
 	}, nil
 }
