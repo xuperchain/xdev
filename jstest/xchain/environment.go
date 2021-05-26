@@ -2,7 +2,6 @@ package xchain
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/xuperchain/xupercore/kernel/common/xcontext"
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/permission/acl"
