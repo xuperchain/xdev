@@ -5,7 +5,8 @@ function deploy() {
         name: "features",
         code: "./features.wasm",
         lang: "c",
-        init_args: {}
+        init_args: {},
+        options: { "account": "XC1111111111111111@xuper" }
     });
 }
 
@@ -16,7 +17,8 @@ Test("deploy", function (t) {
                 name: "features",
                 code: "./not_exists.wasm",
                 lang: "c",
-                init_args: {}
+                init_args: {},
+                options: { "account": "XC1111111111111111@xuper" }
             })
         })
     })
@@ -27,7 +29,8 @@ Test("deploy", function (t) {
                 name: "features",
                 code: "./features.wasm",
                 lang: "go",
-                init_args: {}
+                init_args: {},
+                options: { "account": "XC1111111111111111@xuper"  }
             })
         })
     })
@@ -46,7 +49,7 @@ Test("put", function (t) {
 Test("get", function (t) {
     var c = deploy();
     t.Run("not_found", function (tt) {
-        resp = c.Invoke("get", { "key": "k1" });
+        resp = c.Invoke("get", { "key": "not_exists" });
         assert.ok(resp.Status != 200);
     })
 
@@ -81,27 +84,29 @@ Test("logging", function (t) {
 Test("call", function (t) {
     t.Run("contract_not_found", function (tt) {
         var c = deploy();
-        resp = c.Invoke("call", { "contract": "not_exists" })
+        resp = c.Invoke("call", { "contract": "not_exists" },{"account":"xchain"})
         assert.notEqual(resp.Status, 200)
     })
 
     t.Run("ok", function (tt) {
         c1 = xchain.Deploy({
-            name: "c1",
+            name: "contract1",
             code: "./features.wasm",
             lang: "c",
-            init_args: {}
+            init_args: {},
+            options: { "account": "XC1111111111111111@xuper" }
         });
         c1.Invoke("put", { "k1": "v1" })
 
         c2 = xchain.Deploy({
-            name: "c2",
+            name: "contract2",
             code: "./features.wasm",
             lang: "c",
-            init_args: {}
+            init_args: {},
+            options: { "account": "XC1111111111111111@xuper"}
         });
         resp = c2.Invoke("call", {
-            "contract": "c1",
+            "contract": "contract1",
             "method": "get",
             "key": "k1",
         })
