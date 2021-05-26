@@ -13,19 +13,11 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	_ "github.com/xuperchain/xupercore/bcs/consensus/pow"
-	_ "github.com/xuperchain/xupercore/bcs/consensus/single"
-	_ "github.com/xuperchain/xupercore/bcs/consensus/tdpos"
-	_ "github.com/xuperchain/xupercore/bcs/consensus/xpoa"
 	_ "github.com/xuperchain/xupercore/bcs/contract/evm"
 	_ "github.com/xuperchain/xupercore/bcs/contract/native"
 	_ "github.com/xuperchain/xupercore/bcs/contract/xvm"
-	_ "github.com/xuperchain/xupercore/bcs/network/p2pv1"
-	_ "github.com/xuperchain/xupercore/bcs/network/p2pv2"
 	_ "github.com/xuperchain/xupercore/kernel/contract/kernel"
 	_ "github.com/xuperchain/xupercore/kernel/contract/manager"
-	_ "github.com/xuperchain/xupercore/lib/crypto/client"
-	_ "github.com/xuperchain/xupercore/lib/storage/kvdb/leveldb"
 )
 
 type environment struct {
@@ -56,13 +48,16 @@ func newEnvironment() (*environment, error) {
 		return nil, err
 	}
 	// To Register kernel contract $acl
-	_, _ = acl.NewACLManager(&actx.AclCtx{
+	_, err = acl.NewACLManager(&actx.AclCtx{
 		BaseCtx:  xcontext.BaseCtx{},
 		BcName:   "xuper",
 		Ledger:   &MockLedgerRely{&XMSnapshotReader{}},
 		Contract: m,
 	})
 
+	if err != nil {
+		return nil, err
+	}
 	e := &environment{
 		manager: m,
 		store:   store,
@@ -101,7 +96,6 @@ func convertArgs(ori map[string]interface{}) map[string][]byte {
 	return ret
 }
 func (e *environment) InitAccount() error {
-
 	state, err := e.manager.NewStateSandbox(&contract.SandboxConfig{
 		XMReader: e.store.State(),
 	})
@@ -235,7 +229,6 @@ func (e *environment) ContractExists(name string) bool {
 }
 
 func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, error) {
-
 	state, err := e.manager.NewStateSandbox(&contract.SandboxConfig{
 		XMReader: e.store.State(),
 	})
