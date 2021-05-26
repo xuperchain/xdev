@@ -63,11 +63,18 @@ func newEnvironment() (*environment, error) {
 		Contract: m,
 	})
 
-	return &environment{
+	e := &environment{
 		manager: m,
 		store:   store,
 		basedir: basedir,
-	}, nil
+	}
+	if err := e.InitAccount(); err != nil {
+		return nil, err
+	}
+	if err := e.InitLog(); err != nil {
+		return nil, err
+	}
+	return e, nil
 }
 
 type deployArgs struct {
@@ -144,7 +151,7 @@ console: false
 	}
 
 	logs.InitLog(confPath, logDir)
-
+	return nil
 }
 func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 
