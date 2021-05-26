@@ -2,6 +2,7 @@ package xchain
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/xuperchain/xupercore/kernel/common/xcontext"
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/permission/acl"
@@ -187,6 +188,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 		ContractSet:           nil,
 		ContractCodeFromCache: false,
 	})
+	defer ctx.Release()
 	resp, err := ctx.Invoke("deployContract", dargs)
 	if err != nil {
 		return nil, err
@@ -248,11 +250,12 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 	if err != nil {
 		return nil, err
 	}
+	defer ctx.Release()
+
 	resp, err := ctx.Invoke(args.Method, args.trueArgs)
 	if err != nil {
 		return nil, err
 	}
-	defer ctx.Release()
 
 	if resp.Status >= contract.StatusErrorThreshold {
 		return newContractResponse(resp), nil
