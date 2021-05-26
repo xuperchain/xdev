@@ -5,7 +5,6 @@ import (
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/contract/sandbox"
 	"github.com/xuperchain/xupercore/kernel/ledger"
-	"github.com/xuperchain/xupercore/kernel/permission/acl/utils"
 )
 
 const (
@@ -21,18 +20,11 @@ func NewmockStore() *mockStore {
 	store := &mockStore{
 		state: state,
 	}
-	store.initAccount()
 	return store
 }
 
 func (t *mockStore) State() ledger.XMReader {
 	return t.state
-}
-
-func (t *mockStore) initAccount() {
-	t.state.Put(utils.GetAccountBucket(), []byte(ContractAccount), &ledger.VersionedData{
-		RefTxid: []byte("txid"),
-	})
 }
 
 func (t *mockStore) Commit(state contract.StateSandbox) {

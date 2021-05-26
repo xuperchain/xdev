@@ -154,7 +154,6 @@ console: false
 	return nil
 }
 func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
-
 	dargs := make(map[string][]byte)
 	dargs["contract_name"] = []byte(args.Name)
 	dargs["contract_code"] = args.codeBuf
@@ -167,13 +166,11 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	dargs["init_args"] = initArgs
 
 	descpb := new(protos.WasmCodeDesc)
-
 	descpb.Runtime = args.Runtime
 	if descpb.Runtime == "" {
 		descpb.Runtime = args.Lang
 	}
 	descpb.ContractType = args.Type
-
 	desc, err := proto.Marshal(descpb)
 	if err != nil {
 		return nil, err
@@ -216,7 +213,6 @@ type invokeArgs struct {
 	Options  invokeOptions
 }
 
-//TODO add test
 func (e *environment) ContractExists(name string) bool {
 	ctx, err := e.manager.NewContext(&contract.ContextConfig{
 		State:                 nil,
@@ -268,7 +264,6 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 	if resp.Status >= contract.StatusErrorThreshold {
 		return newContractResponse(resp), nil
 	}
-	//TODO
 	e.store.Commit(state)
 	return newContractResponse(resp), nil
 }
