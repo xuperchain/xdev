@@ -29,7 +29,7 @@ import (
 
 type environment struct {
 	manager contract.Manager
-	state   *mockStore
+	store   *mockStore
 	basedir string
 }
 
@@ -54,16 +54,17 @@ func newEnvironment() (*environment, error) {
 	if err != nil {
 		return nil, err
 	}
-	_,_=acl.NewACLManager(&actx.AclCtx{
+	// To Register kernel contract $acl
+	_, _ = acl.NewACLManager(&actx.AclCtx{
 		BaseCtx:  xcontext.BaseCtx{},
 		BcName:   "xuper",
-		Ledger:   &LedgerRely{reader:XMSnapshotReader{}},
+		Ledger:   &MockLedgerRely{&XMSnapshotReader{}},
 		Contract: m,
 	})
 
 	return &environment{
 		manager: m,
-		state:   store,
+		store:   store,
 		basedir: basedir,
 	}, nil
 }
@@ -91,10 +92,10 @@ func convertArgs(ori map[string]interface{}) map[string][]byte {
 	}
 	return ret
 }
-func (e*environment)InitAccount()error{
+func (e *environment) InitAccount() error {
 
 	state, err := e.manager.NewStateSandbox(&contract.SandboxConfig{
-		XMReader: e.state.State(),
+		XMReader: e.store.State(),
 	})
 	ctx, err := e.manager.NewContext(&contract.ContextConfig{
 		State:                 state,
@@ -105,29 +106,19 @@ func (e*environment)InitAccount()error{
 		ContractName:          "$acl",
 		ResourceLimits:        contract.MaxLimits,
 		CanInitialize:         true,
-		TransferAmount:        "100000",
+		TransferAmount:        "0",
 		ContractSet:           nil,
 		ContractCodeFromCache: false,
 	})
-	simpleACL := `
-        {
-            "pm": {
-                "rule": 1,
-                "acceptValue": 1.0
-            },
-            "aksWeight": {
-                "` + "xchain" + `": 1.0
-            }
-        }
-        `
+
 	_, err = ctx.Invoke("NewAccount", map[string][]byte{
-		"acl":[]byte(simpleACL),
-		"account_name":[]byte("1111111111111111"),
+		"acl":          []byte(defaultAccountACL),
+		"account_name": []byte(defaultTestingAccount),
 	})
 	if err != nil {
-		return  err
+		return err
 	}
-	e.state.Commit(state)
+	e.store.Commit(state)
 	return nil
 }
 func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
@@ -158,7 +149,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	dargs["contract_desc"] = desc
 
 	state, err := e.manager.NewStateSandbox(&contract.SandboxConfig{
-		XMReader: e.state.State(),
+		XMReader: e.store.State(),
 	})
 	ctx, err := e.manager.NewContext(&contract.ContextConfig{
 		State:                 state,
@@ -177,7 +168,7 @@ func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	e.state.Commit(state)
+	e.store.Commit(state)
 	return newContractResponse(resp), nil
 }
 
@@ -218,7 +209,7 @@ func (e *environment) ContractExists(name string) bool {
 func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, error) {
 
 	state, err := e.manager.NewStateSandbox(&contract.SandboxConfig{
-		XMReader: e.state.State(),
+		XMReader: e.store.State(),
 	})
 	ctx, err := e.manager.NewContext(&contract.ContextConfig{
 		State:                 state,
@@ -246,7 +237,7 @@ func (e *environment) Invoke(name string, args invokeArgs) (*ContractResponse, e
 		return newContractResponse(resp), nil
 	}
 	//TODO
-	e.state.Commit(state)
+	e.store.Commit(state)
 	return newContractResponse(resp), nil
 }
 
