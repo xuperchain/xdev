@@ -20,6 +20,8 @@ jobs:
       - name: Test
         run: |
           make test && make coverage
+        env:
+          XDEV_CC_IMAGE: xuper/emcc:dev
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
