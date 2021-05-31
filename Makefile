@@ -1,8 +1,7 @@
 
-all:build
+all: build
 
 export GO111MODULE=on
-
 
 build:
 	@ls bin 2>&1 >/dev/null || mkdir bin
@@ -18,3 +17,6 @@ test:build
 	#bin/xdev test testdata/counter.test.js
 lint:
 	go vet ./...
+
+coverage:
+	go test -coverprofile=coverage.txt -covermode=atomic ./...
