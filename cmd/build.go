@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -38,6 +37,7 @@ type buildCommand struct {
 	ldflags  []string
 	builder  *mkfile.Builder
 	entryPkg *mkfile.Package
+	xdevRoot string
 
 	genCompileCommand bool
 	makeFileOnly      bool
@@ -52,6 +52,28 @@ func newBuildCommand() *cobra.Command {
 		ldflags:  defaultLDFlags,
 		cxxFlags: defaultCxxFlags,
 	}
+	xroot := os.Getenv("XDEV_ROOT")
+	c.xdevRoot = xroot
+
+	useEmbeddedXchain := false
+	if xroot == "" {
+		useEmbeddedXchain = true
+	}
+	if _, err := os.Stat(xroot); err != nil {
+		useEmbeddedXchain = true
+	}
+
+	if useEmbeddedXchain {
+		//	Use emcc embedded contract-sdk-cpp as default
+		c.ldflags = append(c.ldflags, "--js-library /src/src/xchain/exports.js")
+		// redundant -lprotobuf-lite for ld symbol resolve order
+		c.ldflags = append(c.ldflags, "-lxchain", "-lprotobuf-lite")
+	} else {
+		// For contract-sdk-cpp developers
+		exportJsPath := filepath.Join(xroot, "src", "xchain", "exports.js")
+		c.ldflags = append(c.ldflags, "--js-library "+exportJsPath)
+	}
+
 	cmd := &cobra.Command{
 		Use:   "build",
 		Short: "build command builds a project",
@@ -65,20 +87,18 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.compiler, "compiler", "", "docker", "compiler env docker|host")
 	cmd.Flags().StringVarP(&c.makeFlags, "mkflags", "", "", "extra flags passing to make command")
 	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
+
 	return cmd
 }
 
-func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
-	absxroot, err := filepath.Abs(xroot)
-	if err != nil {
-		return err
-	}
+func (c *buildCommand) parsePackage(root, xcache string) error {
+
 	absroot, err := filepath.Abs(root)
 	if err != nil {
 		return err
 	}
 
-	addons, err := addonModules(absxroot, absroot)
+	addons, err := addonModules(absroot)
 	if err != nil {
 		return err
 	}
@@ -89,14 +109,14 @@ func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
 		})
 	}
 
-	loader := mkfile.NewLoader().WithXROOT(xroot)
+	loader := mkfile.NewLoader().WithXROOT(c.xdevRoot)
 	pkg, err := loader.Load(absroot, addons)
 	if err != nil {
 		return err
 	}
 
 	output := c.output
-	// 如果没有指定输出，且为main package，则用package目录名+wasm后缀作为输出名字s
+	// 如果没有指定输出，且为main package，则用package目录名+wasm后缀作为输出名字
 	if output == "" && pkg.Name == mkfile.MainPackage {
 		output = filepath.Base(absroot) + ".wasm"
 	}
@@ -165,7 +185,7 @@ func xchainModule(xroot string) mkfile.DependencyDesc {
 	}
 }
 
-func addonModules(xroot, pkgpath string) ([]mkfile.DependencyDesc, error) {
+func addonModules(pkgpath string) ([]mkfile.DependencyDesc, error) {
 	desc, err := mkfile.ParsePackageDesc(pkgpath)
 	if err != nil {
 		return nil, err
@@ -173,7 +193,7 @@ func addonModules(xroot, pkgpath string) ([]mkfile.DependencyDesc, error) {
 	if desc.Package.Name != mkfile.MainPackage {
 		return nil, nil
 	}
-	if os.Getenv("XDEV_ROOT") != "" {
+	if xroot := os.Getenv("XDEV_ROOT"); xroot != "" {
 		return []mkfile.DependencyDesc{xchainModule(xroot)}, nil
 	}
 	return []mkfile.DependencyDesc{}, nil
@@ -196,27 +216,7 @@ func (c *buildCommand) buildPackage(root string) error {
 		return err
 	}
 
-	xroot := os.Getenv("XDEV_ROOT")
-	useEmbeddedXchain := false
-	if xroot == "" {
-		useEmbeddedXchain = true
-	}
-	if _, err := os.Stat(xroot); err != nil {
-		useEmbeddedXchain = true
-	}
-
-	if useEmbeddedXchain {
-		//	Use emcc embedded contract-sdk-cpp as default
-		c.ldflags = append(c.ldflags, "--js-library /src/src/xchain/exports.js")
-		// redundant -lprotobuf-lite for ld symbol resolve order
-		c.ldflags = append(c.ldflags, "-lxchain", "-lprotobuf-lite")
-	} else {
-		// For contract-sdk-cpp developers
-		exportJsPath := filepath.Join(xroot, "src", "xchain", "exports.js")
-		c.ldflags = append(c.ldflags, "--js-library "+exportJsPath)
-	}
-
-	err = c.parsePackage(".", xcache, xroot)
+	err = c.parsePackage(".", xcache)
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func (c *buildCommand) buildPackage(root string) error {
 	runner := mkfile.NewRunner().
 		WithEntry(c.entryPkg).
 		WithCacheDir(xcache).
-		WithXROOT(xroot).
+		WithXROOT(c.xdevRoot).
 		WithOutput(c.output).
 		WithMakeFlags(strings.Fields(c.makeFlags)).
 		WithLogger(logger)
@@ -327,19 +327,6 @@ func cpfile(dest, src string) error {
 
 	_, err = io.Copy(destf, srcf)
 	return err
-}
-
-func uniq(list []string) []string {
-	var result []string
-	m := make(map[string]bool)
-	for _, str := range list {
-		if !m[str] {
-			result = append(result, str)
-			m[str] = true
-		}
-	}
-	sort.Strings(result)
-	return result
 }
 
 func findPackageRoot() (string, error) {
