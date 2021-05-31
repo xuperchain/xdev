@@ -2,9 +2,8 @@ package xchain
 
 import (
 	"errors"
+	pb "github.com/xuperchain/xupercore/bcs/ledger/xledger/xldgpb"
 	"math/big"
-
-	"github.com/xuperchain/xuperchain/core/pb"
 )
 
 var (
@@ -55,6 +54,6 @@ func (c *chainCore) QueryLastBlock() (*pb.InternalBlock, error) {
 }
 
 // CrossQuery query contract from otherchain
-func (c *chainCore) ResolveChain(chainName string) (*pb.CrossQueryMeta, error) {
-	return new(pb.CrossQueryMeta), nil
-}
+//func (c *chainCore) ResolveChain(chainName string) (*pb.CrossQueryMeta, error) {
+//	return new(pb.CrossQueryMeta), nil
+//}

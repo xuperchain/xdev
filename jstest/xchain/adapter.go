@@ -3,6 +3,8 @@ package xchain
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/xuperchain/xupercore/bcs/contract/evm/abi"
+	"github.com/xuperchain/xupercore/kernel/contract/bridge"
 	"io/ioutil"
 	"testing"
 
@@ -10,8 +12,6 @@ import (
 	"github.com/robertkrimen/otto"
 
 	"github.com/xuperchain/xdev/jstest"
-	"github.com/xuperchain/xuperchain/core/contract/bridge"
-	"github.com/xuperchain/xuperchain/core/contract/evm/abi"
 )
 
 type contractObject struct {
