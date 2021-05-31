@@ -14,7 +14,7 @@ install:
 test:build
 	# go test 
 	go test ./...
-	bin/xdev build -o testdata/bin/counter-c.wasm testdata/counter.cc
-	bin/xdev test testdata/counter.test.js 
+	bin/xdev build -o testdata/counter-c.wasm testdata/counter.cc
+	#bin/xdev test testdata/counter.test.js
 lint:
 	go vet ./...
