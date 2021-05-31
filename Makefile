@@ -1,5 +1,5 @@
 
-all: install
+all:build
 
 export GO111MODULE=on
 
