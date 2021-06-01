@@ -71,7 +71,7 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.xdevRoot, "xdevRoot", "", mkfile.DefaultXROOT, "cpp contract sdk root")
 
 	if c.xdevRoot == mkfile.DefaultXROOT {
-		c.ldflags = append(c.ldflags, "-lxchain", "-lprotobuf-lite")
+		c.ldflags = append(c.ldflags, "-L${XDEV_ROOT}/lib", "-lxchain", "-lprotobuf-lite")
 	}
 	return cmd
 }
