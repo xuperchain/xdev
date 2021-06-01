@@ -44,6 +44,7 @@ type buildCommand struct {
 	output            string
 	compiler          string
 	makeFlags         string
+	submodules        []string
 }
 
 func newBuildCommand() *cobra.Command {
@@ -60,6 +61,7 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.output, "output", "o", "", "output file name")
 	cmd.Flags().StringVarP(&c.compiler, "compiler", "", "docker", "compiler env docker|host")
 	cmd.Flags().StringVarP(&c.makeFlags, "mkflags", "", "", "extra flags passing to make command")
+	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
 	return cmd
 }
 
@@ -73,6 +75,13 @@ func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
 	if err != nil {
 		return err
 	}
+	if c.submodules != nil {
+		addons = append(addons, mkfile.DependencyDesc{
+			Name:    "self",
+			Modules: c.submodules,
+		})
+	}
+
 	loader := mkfile.NewLoader().WithXROOT(xroot)
 	pkg, err := loader.Load(absroot, addons)
 	if err != nil {
