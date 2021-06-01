@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-export XDEV_CC_IMAGE=hub.baidubce.com/xchain/emcc:dev
 export PATH=`pwd`/bin:${PATH}
 git clone https://github.com/xuperchain/contract-sdk-cpp.git|| true
 cd contract-sdk-cpp
