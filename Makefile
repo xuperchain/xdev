@@ -14,7 +14,7 @@ test:build
 	# go test 
 	go test ./...
 	bin/xdev build -o testdata/counter-c.wasm testdata/counter.cc
-	#bin/xdev test testdata/counter.test.js
+	bin/xdev test testdata/counter.test.js
 lint:
 	go vet ./...
 

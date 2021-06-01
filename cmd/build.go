@@ -17,7 +17,8 @@ var (
 		"-std=c++11",
 		"-Os",
 		"-I/usr/local/include",
-		"-Isrc",
+		"-I/src",
+		"-I${XDEV_ROOT}/src",
 		"-Werror=vla",
 	}
 	defaultLDFlags = []string{
@@ -29,6 +30,7 @@ var (
 		"-L/usr/local/lib",
 		"-lprotobuf-lite",
 		"-lpthread",
+		"--js-library ${XDEV_ROOT}/src/xchain/exports.js",
 	}
 )
 
@@ -52,27 +54,6 @@ func newBuildCommand() *cobra.Command {
 		ldflags:  defaultLDFlags,
 		cxxFlags: defaultCxxFlags,
 	}
-	xroot := os.Getenv("XDEV_ROOT")
-	c.xdevRoot = xroot
-
-	useEmbeddedXchain := false
-	if xroot == "" {
-		useEmbeddedXchain = true
-	}
-	if _, err := os.Stat(xroot); err != nil {
-		useEmbeddedXchain = true
-	}
-
-	if useEmbeddedXchain {
-		//	Use emcc embedded contract-sdk-cpp as default
-		c.ldflags = append(c.ldflags, "--js-library /src/src/xchain/exports.js")
-		// redundant -lprotobuf-lite for ld symbol resolve order
-		c.ldflags = append(c.ldflags, "-lxchain", "-lprotobuf-lite")
-	} else {
-		// For contract-sdk-cpp developers
-		exportJsPath := filepath.Join(xroot, "src", "xchain", "exports.js")
-		c.ldflags = append(c.ldflags, "--js-library "+exportJsPath)
-	}
 
 	cmd := &cobra.Command{
 		Use:   "build",
@@ -87,7 +68,11 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.compiler, "compiler", "", "docker", "compiler env docker|host")
 	cmd.Flags().StringVarP(&c.makeFlags, "mkflags", "", "", "extra flags passing to make command")
 	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
+	cmd.Flags().StringVarP(&c.xdevRoot, "xdevRoot", "", "/opt/xchain", "cpp contract sdk root")
 
+	if c.xdevRoot == mkfile.DefaultXROOT {
+		c.ldflags = append(c.ldflags, "-lxchain", "-lprotobuf-lite")
+	}
 	return cmd
 }
 
@@ -98,7 +83,7 @@ func (c *buildCommand) parsePackage(root, xcache string) error {
 		return err
 	}
 
-	addons, err := addonModules(absroot)
+	addons, err := c.addonModules(absroot)
 	if err != nil {
 		return err
 	}
@@ -143,6 +128,14 @@ func (c *buildCommand) parsePackage(root, xcache string) error {
 	return nil
 }
 
+//func (c *buildCommand) xdevRoot() string {
+//	xroot := os.Getenv("XDEV_ROOT")
+//	if xroot != "" {
+//		return xroot
+//
+//	}
+//	return mkfile.DefaultXROOT
+//}
 func (c *buildCommand) xdevCacheDir() (string, error) {
 	xcache := os.Getenv("XDEV_CACHE")
 	if xcache != "" {
@@ -185,7 +178,7 @@ func xchainModule(xroot string) mkfile.DependencyDesc {
 	}
 }
 
-func addonModules(pkgpath string) ([]mkfile.DependencyDesc, error) {
+func (c *buildCommand) addonModules(pkgpath string) ([]mkfile.DependencyDesc, error) {
 	desc, err := mkfile.ParsePackageDesc(pkgpath)
 	if err != nil {
 		return nil, err
@@ -193,8 +186,8 @@ func addonModules(pkgpath string) ([]mkfile.DependencyDesc, error) {
 	if desc.Package.Name != mkfile.MainPackage {
 		return nil, nil
 	}
-	if xroot := os.Getenv("XDEV_ROOT"); xroot != "" {
-		return []mkfile.DependencyDesc{xchainModule(xroot)}, nil
+	if c.xdevRoot != mkfile.DefaultXROOT {
+		return []mkfile.DependencyDesc{xchainModule(c.xdevRoot)}, nil
 	}
 	return []mkfile.DependencyDesc{}, nil
 }
