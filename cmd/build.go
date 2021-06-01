@@ -17,7 +17,7 @@ var (
 		"-std=c++11",
 		"-Os",
 		"-I/usr/local/include",
-		"-I/src",
+		"-Isrc",
 		"-I${XDEV_ROOT}/src",
 		"-Werror=vla",
 	}
@@ -77,7 +77,6 @@ func newBuildCommand() *cobra.Command {
 }
 
 func (c *buildCommand) parsePackage(root, xcache string) error {
-
 	absroot, err := filepath.Abs(root)
 	if err != nil {
 		return err
@@ -128,14 +127,6 @@ func (c *buildCommand) parsePackage(root, xcache string) error {
 	return nil
 }
 
-//func (c *buildCommand) xdevRoot() string {
-//	xroot := os.Getenv("XDEV_ROOT")
-//	if xroot != "" {
-//		return xroot
-//
-//	}
-//	return mkfile.DefaultXROOT
-//}
 func (c *buildCommand) xdevCacheDir() (string, error) {
 	xcache := os.Getenv("XDEV_CACHE")
 	if xcache != "" {
