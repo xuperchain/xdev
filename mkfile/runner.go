@@ -119,7 +119,6 @@ func (r *Runner) makeUsingDocker(mkfile string) error {
 	runargs = append(runargs, r.makeFlags...)
 
 	r.Printf("docker %s", strings.Join(runargs, " "))
-	fmt.Printf("docker %s", strings.Join(runargs, " "))
 
 	cmd := exec.Command("docker", runargs...)
 	cmd.Stdout = os.Stdout
