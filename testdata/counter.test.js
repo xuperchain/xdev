@@ -1,6 +1,6 @@
 var assert = require("assert");
 
-var codePath = "bin/counter-c.wasm";
+var codePath = "counter-c.wasm";
 
 var lang = "c"
 var type = "wasm"
@@ -10,7 +10,7 @@ function deploy() {
         code: codePath,
         lang: lang,
         type: type,
-        init_args: { "creator": "xchain" }
+        init_args: { "creator": "xchain" },
         options: { "account": "XC1111111111111111@xuper" }
 
     });
