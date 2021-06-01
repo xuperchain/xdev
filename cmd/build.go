@@ -68,7 +68,7 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.compiler, "compiler", "", "docker", "compiler env docker|host")
 	cmd.Flags().StringVarP(&c.makeFlags, "mkflags", "", "", "extra flags passing to make command")
 	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
-	cmd.Flags().StringVarP(&c.xdevRoot, "xdevRoot", "", mkfile.DefaultXROOT, "cpp contract sdk root")
+	cmd.Flags().StringVarP(&c.xdevRoot, "xdev-root", "", mkfile.DefaultXROOT, "cpp contract sdk root")
 
 	if c.xdevRoot == mkfile.DefaultXROOT {
 		c.ldflags = append(c.ldflags, "-L${XDEV_ROOT}/lib", "-lxchain", "-lprotobuf-lite")
