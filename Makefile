@@ -10,11 +10,15 @@ build:
 install:
 	go install github.com/xuperchain/xdev
 
-test:build
-	# go test 
+unit-test:
 	go test ./...
+
+build-test:build
 	bin/xdev build -o testdata/counter-c.wasm testdata/counter.cc
 	bin/xdev test testdata/counter.test.js
+
+test:unit-test build-test
+
 lint:
 	go vet ./...
 
