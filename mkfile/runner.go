@@ -23,8 +23,9 @@ type Runner struct {
 	image  string
 	output string
 
-	withoutDocker bool
-	makeFlags     []string
+	withoutDocker         bool
+	withoutPrecompiledSDk bool
+	makeFlags             []string
 
 	*log.Logger
 }
@@ -46,6 +47,10 @@ func (r *Runner) WithEntry(pkg *Package) *Runner {
 
 func (r *Runner) WithXROOT(xroot string) *Runner {
 	r.xroot = xroot
+	return r
+}
+func (r *Runner) WithoutPrecompiledSDK() *Runner {
+	r.withoutPrecompiledSDk = true
 	return r
 }
 
@@ -78,7 +83,7 @@ func (r *Runner) WithLogger(logger *log.Logger) *Runner {
 
 func (r *Runner) mountPaths() []string {
 	paths := []string{r.entry.Path, r.xcache}
-	if r.xroot != DefaultXROOT {
+	if r.withoutPrecompiledSDk {
 		paths = append(paths, r.xroot)
 	}
 	if r.output != "" {

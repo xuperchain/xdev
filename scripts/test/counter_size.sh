@@ -3,7 +3,8 @@ export PATH=`pwd`/bin:${PATH}
 git clone https://github.com/xuperchain/contract-sdk-cpp.git|| true
 cd contract-sdk-cpp
 xdev build -o counter1.wasm  example/counter.cc
-xdev build --xdev-root `pwd` -o counter2.wasm example/counter.cc
+XDEV_ROOT=`pwd` xdev build --using-precompiled-sdk=false -o counter2.wasm example/counter.cc
+
 # for debug
 ls -alh
 counter1_size=`du -k "counter1.wasm" | cut -f1`

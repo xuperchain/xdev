@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -18,7 +19,6 @@ var (
 		"-Os",
 		"-I/usr/local/include",
 		"-Isrc",
-		"-I${XDEV_ROOT}/src",
 		"-Werror=vla",
 	}
 	defaultLDFlags = []string{
@@ -30,16 +30,16 @@ var (
 		"-L/usr/local/lib",
 		"-lprotobuf-lite",
 		"-lpthread",
-		"--js-library ${XDEV_ROOT}/src/xchain/exports.js",
 	}
 )
 
 type buildCommand struct {
-	cxxFlags []string
-	ldflags  []string
-	builder  *mkfile.Builder
-	entryPkg *mkfile.Package
-	xdevRoot string
+	cxxFlags            []string
+	ldflags             []string
+	builder             *mkfile.Builder
+	entryPkg            *mkfile.Package
+	UsingPrecompiledSDK bool
+	xdevRoot            string
 
 	genCompileCommand bool
 	makeFileOnly      bool
@@ -59,6 +59,15 @@ func newBuildCommand() *cobra.Command {
 		Use:   "build",
 		Short: "build command builds a project",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if c.UsingPrecompiledSDK {
+				c.ldflags = append(c.ldflags, fmt.Sprintf("-L%s/lib", mkfile.DefaultXROOT), "-lxchain", "-lprotobuf-lite")
+				c.ldflags = append(c.ldflags, fmt.Sprintf("--js-library %s/src/xchain/exports.js", mkfile.DefaultXROOT))
+				c.cxxFlags = append(c.cxxFlags, fmt.Sprintf("-I%s/src", mkfile.DefaultXROOT))
+			} else {
+				xroot := os.Getenv("XDEV_ROOT")
+				c.xdevRoot = xroot
+				c.ldflags = append(c.ldflags, fmt.Sprintf("--js-library %s/src/xchain/exports.js", xroot))
+			}
 			return c.build(args)
 		},
 	}
@@ -68,11 +77,7 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.compiler, "compiler", "", "docker", "compiler env docker|host")
 	cmd.Flags().StringVarP(&c.makeFlags, "mkflags", "", "", "extra flags passing to make command")
 	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
-	cmd.Flags().StringVarP(&c.xdevRoot, "xdev-root", "", mkfile.DefaultXROOT, "cpp contract sdk root")
-
-	if c.xdevRoot == mkfile.DefaultXROOT {
-		c.ldflags = append(c.ldflags, "-L${XDEV_ROOT}/lib", "-lxchain", "-lprotobuf-lite")
-	}
+	cmd.Flags().BoolVarP(&c.UsingPrecompiledSDK, "using-precompiled-sdk", "", true, "using precompiled sdk")
 	return cmd
 }
 
@@ -177,7 +182,7 @@ func (c *buildCommand) addonModules(pkgpath string) ([]mkfile.DependencyDesc, er
 	if desc.Package.Name != mkfile.MainPackage {
 		return nil, nil
 	}
-	if c.xdevRoot != mkfile.DefaultXROOT {
+	if !c.UsingPrecompiledSDK {
 		return []mkfile.DependencyDesc{xchainModule(c.xdevRoot)}, nil
 	}
 	return []mkfile.DependencyDesc{}, nil
@@ -240,6 +245,10 @@ func (c *buildCommand) buildPackage(root string) error {
 
 	if c.compiler != "docker" {
 		runner = runner.WithoutDocker()
+	}
+
+	if !c.UsingPrecompiledSDK {
+		runner = runner.WithoutPrecompiledSDK()
 	}
 
 	err = runner.Make(".Makefile")
