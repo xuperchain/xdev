@@ -242,7 +242,7 @@ func (l *Loader) parseModuleDeps(node *moduleNode) (map[string]*moduleNode, erro
 		if err != nil {
 			return nil, err
 		}
-		if dep.Name != SelfPackageName && desc.Package.Name != dep.Name {
+		if dep.Name != SelfPackageName && dep.Name != XchainPackage && desc.Package.Name != dep.Name {
 			return nil, fmt.Errorf("mismatched package name %s:%s", desc.Package.Name, dep.Name)
 		}
 		packageMod := &moduleNode{

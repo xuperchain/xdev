@@ -1,6 +1,7 @@
 package mkfile
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -11,7 +12,8 @@ import (
 )
 
 const (
-	defaultDockerImage = "hub.baidubce.com/xchain/emcc"
+	defaultDockerImage = "hub.baidubce.com/xchain/emcc:1.0.0"
+	DefaultXROOT       = "/opt/xchain"
 )
 
 type Runner struct {
@@ -21,8 +23,9 @@ type Runner struct {
 	image  string
 	output string
 
-	withoutDocker bool
-	makeFlags     []string
+	withoutDocker         bool
+	withoutPrecompiledSDk bool
+	makeFlags             []string
 
 	*log.Logger
 }
@@ -44,6 +47,10 @@ func (r *Runner) WithEntry(pkg *Package) *Runner {
 
 func (r *Runner) WithXROOT(xroot string) *Runner {
 	r.xroot = xroot
+	return r
+}
+func (r *Runner) WithoutPrecompiledSDK() *Runner {
+	r.withoutPrecompiledSDk = true
 	return r
 }
 
@@ -76,7 +83,7 @@ func (r *Runner) WithLogger(logger *log.Logger) *Runner {
 
 func (r *Runner) mountPaths() []string {
 	paths := []string{r.entry.Path, r.xcache}
-	if r.xroot != "" {
+	if r.withoutPrecompiledSDk {
 		paths = append(paths, r.xroot)
 	}
 	if r.output != "" {
@@ -109,6 +116,7 @@ func (r *Runner) makeUsingDocker(mkfile string) error {
 		"-u", strconv.Itoa(os.Getuid()) + ":" + strconv.Itoa(os.Getgid()),
 		"--rm",
 		"-w", r.entry.Path,
+		"-e", fmt.Sprintf("XDEV_ROOT=%s", r.xroot),
 	}
 	runargs = append(runargs, mountpaths...)
 	runargs = append(runargs, r.image)

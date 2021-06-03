@@ -14,15 +14,25 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: setup Docker
+        uses: docker-practice/actions-setup-docker@master
+
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Test
         run: |
           make test && make coverage
+        env:
+          XDEV_CC_IMAGE: xuper/emcc:dev
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
           file: ./coverage.txt
 
+      - name: Counter size check
+        run: |
+          make && bash scripts/test/counter_size.sh
+        env:
+          XDEV_CC_IMAGE: xuper/emcc:dev

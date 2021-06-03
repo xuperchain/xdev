@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -34,10 +34,12 @@ var (
 )
 
 type buildCommand struct {
-	cxxFlags []string
-	ldflags  []string
-	builder  *mkfile.Builder
-	entryPkg *mkfile.Package
+	cxxFlags            []string
+	ldflags             []string
+	builder             *mkfile.Builder
+	entryPkg            *mkfile.Package
+	UsingPrecompiledSDK bool
+	xdevRoot            string
 
 	genCompileCommand bool
 	makeFileOnly      bool
@@ -48,11 +50,24 @@ type buildCommand struct {
 }
 
 func newBuildCommand() *cobra.Command {
-	c := &buildCommand{}
+	c := &buildCommand{
+		ldflags:  defaultLDFlags,
+		cxxFlags: defaultCxxFlags,
+	}
+
 	cmd := &cobra.Command{
 		Use:   "build",
 		Short: "build command builds a project",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if c.UsingPrecompiledSDK {
+				c.ldflags = append(c.ldflags, fmt.Sprintf("-L%s/lib", mkfile.DefaultXROOT), "-lxchain", "-lprotobuf-lite")
+				c.ldflags = append(c.ldflags, fmt.Sprintf("--js-library %s/src/xchain/exports.js", mkfile.DefaultXROOT))
+				c.cxxFlags = append(c.cxxFlags, fmt.Sprintf("-I%s/src", mkfile.DefaultXROOT))
+			} else {
+				xroot := os.Getenv("XDEV_ROOT")
+				c.xdevRoot = xroot
+				c.ldflags = append(c.ldflags, fmt.Sprintf("--js-library %s/src/xchain/exports.js", xroot))
+			}
 			return c.build(args)
 		},
 	}
@@ -62,16 +77,17 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.compiler, "compiler", "", "docker", "compiler env docker|host")
 	cmd.Flags().StringVarP(&c.makeFlags, "mkflags", "", "", "extra flags passing to make command")
 	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
+	cmd.Flags().BoolVarP(&c.UsingPrecompiledSDK, "using-precompiled-sdk", "", true, "using precompiled sdk")
 	return cmd
 }
 
-func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
+func (c *buildCommand) parsePackage(root, xcache string) error {
 	absroot, err := filepath.Abs(root)
 	if err != nil {
 		return err
 	}
 
-	addons, err := addonModules(xroot, absroot)
+	addons, err := c.addonModules(absroot)
 	if err != nil {
 		return err
 	}
@@ -82,14 +98,14 @@ func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
 		})
 	}
 
-	loader := mkfile.NewLoader().WithXROOT(xroot)
+	loader := mkfile.NewLoader().WithXROOT(c.xdevRoot)
 	pkg, err := loader.Load(absroot, addons)
 	if err != nil {
 		return err
 	}
 
 	output := c.output
-	// 如果没有指定输出，且为main package，则用package目录名+wasm后缀作为输出名字s
+	// 如果没有指定输出，且为main package，则用package目录名+wasm后缀作为输出名字
 	if output == "" && pkg.Name == mkfile.MainPackage {
 		output = filepath.Base(absroot) + ".wasm"
 	}
@@ -116,21 +132,6 @@ func (c *buildCommand) parsePackage(root, xcache, xroot string) error {
 	return nil
 }
 
-func (c *buildCommand) xdevRoot() (string, error) {
-	xroot := os.Getenv("XDEV_ROOT")
-	if xroot != "" {
-		return filepath.Abs(xroot)
-	}
-	xchainRoot := os.Getenv("XCHAIN_ROOT")
-	if xchainRoot == "" {
-		return "", errors.New(`XDEV_ROOT and XCHAIN_ROOT must be set one.
-XCHAIN_ROOT is the path of $xuperchain_project_root/core.
-XDEV_ROOT is the path of $xuperchain_project_root/core/contractsdk/cpp`)
-	}
-	xroot = filepath.Join(xchainRoot, "contractsdk", "cpp")
-	return filepath.Abs(xroot)
-}
-
 func (c *buildCommand) xdevCacheDir() (string, error) {
 	xcache := os.Getenv("XDEV_CACHE")
 	if xcache != "" {
@@ -141,15 +142,6 @@ func (c *buildCommand) xdevCacheDir() (string, error) {
 		return "", err
 	}
 	return filepath.Join(homedir, ".xdev-cache"), nil
-}
-
-func (c *buildCommand) initCompileFlags(xroot string) error {
-	c.cxxFlags = append([]string{}, defaultCxxFlags...)
-	c.ldflags = append([]string{}, defaultLDFlags...)
-
-	exportJsPath := filepath.Join(xroot, "src", "xchain", "exports.js")
-	c.ldflags = append(c.ldflags, "--js-library "+exportJsPath)
-	return nil
 }
 
 func (c *buildCommand) build(args []string) error {
@@ -182,7 +174,7 @@ func xchainModule(xroot string) mkfile.DependencyDesc {
 	}
 }
 
-func addonModules(xroot, pkgpath string) ([]mkfile.DependencyDesc, error) {
+func (c *buildCommand) addonModules(pkgpath string) ([]mkfile.DependencyDesc, error) {
 	desc, err := mkfile.ParsePackageDesc(pkgpath)
 	if err != nil {
 		return nil, err
@@ -190,7 +182,10 @@ func addonModules(xroot, pkgpath string) ([]mkfile.DependencyDesc, error) {
 	if desc.Package.Name != mkfile.MainPackage {
 		return nil, nil
 	}
-	return []mkfile.DependencyDesc{xchainModule(xroot)}, nil
+	if !c.UsingPrecompiledSDK {
+		return []mkfile.DependencyDesc{xchainModule(c.xdevRoot)}, nil
+	}
+	return []mkfile.DependencyDesc{}, nil
 }
 
 func (c *buildCommand) buildPackage(root string) error {
@@ -200,12 +195,6 @@ func (c *buildCommand) buildPackage(root string) error {
 		return err
 	}
 	defer os.Chdir(wd)
-
-	xroot, err := c.xdevRoot()
-	if err != nil {
-		return err
-	}
-
 	xcache, err := c.xdevCacheDir()
 	if err != nil {
 		return err
@@ -216,12 +205,7 @@ func (c *buildCommand) buildPackage(root string) error {
 		return err
 	}
 
-	err = c.initCompileFlags(xroot)
-	if err != nil {
-		return err
-	}
-
-	err = c.parsePackage(".", xcache, xroot)
+	err = c.parsePackage(".", xcache)
 	if err != nil {
 		return err
 	}
@@ -254,13 +238,17 @@ func (c *buildCommand) buildPackage(root string) error {
 	runner := mkfile.NewRunner().
 		WithEntry(c.entryPkg).
 		WithCacheDir(xcache).
-		WithXROOT(xroot).
+		WithXROOT(c.xdevRoot).
 		WithOutput(c.output).
 		WithMakeFlags(strings.Fields(c.makeFlags)).
 		WithLogger(logger)
 
 	if c.compiler != "docker" {
 		runner = runner.WithoutDocker()
+	}
+
+	if !c.UsingPrecompiledSDK {
+		runner = runner.WithoutPrecompiledSDK()
 	}
 
 	err = runner.Make(".Makefile")
@@ -315,11 +303,7 @@ func (c *buildCommand) buildFiles(files []string) error {
 		}
 	}
 
-	err = c.buildPackage(basedir)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.buildPackage(basedir)
 }
 
 func cpfile(dest, src string) error {
@@ -336,19 +320,6 @@ func cpfile(dest, src string) error {
 
 	_, err = io.Copy(destf, srcf)
 	return err
-}
-
-func uniq(list []string) []string {
-	var result []string
-	m := make(map[string]bool)
-	for _, str := range list {
-		if !m[str] {
-			result = append(result, str)
-			m[str] = true
-		}
-	}
-	sort.Strings(result)
-	return result
 }
 
 func findPackageRoot() (string, error) {
