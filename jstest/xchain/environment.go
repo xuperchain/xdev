@@ -2,6 +2,7 @@ package xchain
 
 import (
 	"encoding/json"
+	log15 "github.com/xuperchain/log15"
 	"github.com/xuperchain/xupercore/kernel/common/xcontext"
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/permission/acl"
@@ -12,7 +13,6 @@ import (
 	"os"
 
 	"github.com/golang/protobuf/proto"
-
 	_ "github.com/xuperchain/xupercore/bcs/contract/evm"
 	_ "github.com/xuperchain/xupercore/bcs/contract/native"
 	_ "github.com/xuperchain/xupercore/bcs/contract/xvm"
@@ -35,6 +35,18 @@ func newEnvironment() (*environment, error) {
 
 	config := contract.DefaultContractConfig()
 	config.Wasm.Driver = "ixvm"
+
+	//logs.InitLog("")
+	log15.StreamHandler(os.Stderr, log15.JsonFormat())
+	//logger := log15.New("aaaa", "bbbb")
+	//logger.SetHandler(log15.StreamHandler(os.Stderr, log15.LogfmtFormat()))
+	l := &Logger{
+		//name: "xxx",
+	}
+	logs.SetHandler(l)
+
+	config.LogDriver = l
+	config.DebugLog.Level = "debug"
 
 	m, err := contract.CreateManager("default", &contract.ManagerConfig{
 		Basedir:  basedir,
@@ -112,7 +124,9 @@ func (e *environment) InitAccount() error {
 		ContractSet:           nil,
 		ContractCodeFromCache: false,
 	})
-
+	if err != nil {
+		return err
+	}
 	_, err = ctx.Invoke("NewAccount", map[string][]byte{
 		"acl":          []byte(defaultAccountACL),
 		"account_name": []byte(defaultTestingAccount),
@@ -137,7 +151,7 @@ func (e *environment) InitLog() error {
 
 	confPath := confDir + "/logs.yaml"
 	xdevlog := `
-level: crit
+level: info
 console: false
 `
 	if err := ioutil.WriteFile(confPath, []byte(xdevlog), 0755); err != nil {

@@ -1,6 +1,6 @@
 module github.com/xuperchain/xdev
 
-go 1.15
+go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
@@ -13,6 +13,10 @@ require (
 	github.com/xuperchain/log15 v0.0.0-20190620081506-bc88a9198230
 	github.com/xuperchain/xuperchain v0.0.0-20210511082518-b2d6bd248cc3
 	github.com/xuperchain/xupercore v0.0.0-20210528082019-f4a06ec81401
+	gopkg.in/sourcemap.v1 v1.0.5 // indirect
+	github.com/xuperchain/log15 v0.0.0-20190620081506-bc88a9198230
 )
 
 replace github.com/hyperledger/burrow => github.com/xuperchain/burrow v0.30.6-0.20210317023017-369050d94f4a
+
+replace github.com/xuperchain/xupercore => ../xupercore
