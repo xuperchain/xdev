@@ -37,15 +37,15 @@ func newEnvironment() (*environment, error) {
 	config.Wasm.Driver = "ixvm"
 
 	//logs.InitLog("")
-	log15.StreamHandler(os.Stderr, log15.JsonFormat())
-	//logger := log15.New("aaaa", "bbbb")
-	//logger.SetHandler(log15.StreamHandler(os.Stderr, log15.LogfmtFormat()))
-	l := &Logger{
-		//name: "xxx",
-	}
-	logs.SetHandler(l)
+	//log15.StreamHandler(os.Stderr, log15.JsonFormat())
+	logger := log15.New("aaaa", "bbbb")
+	logger.SetHandler(log15.StreamHandler(os.Stderr, log15.LogfmtFormat()))
+	//l := &Logger{
+	//	name: "xxx",
+	//}
+	logs.SetHandler(logger)
 
-	config.LogDriver = l
+	config.LogDriver = logger
 	config.DebugLog.Level = "debug"
 
 	m, err := contract.CreateManager("default", &contract.ManagerConfig{
