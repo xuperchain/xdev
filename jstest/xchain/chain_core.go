@@ -2,7 +2,9 @@ package xchain
 
 import (
 	"errors"
-	pb "github.com/xuperchain/xupercore/bcs/ledger/xledger/xldgpb"
+	"github.com/xuperchain/xupercore/bcs/ledger/xledger/xldgpb"
+	"github.com/xuperchain/xupercore/kernel/contract/bridge/pb"
+
 	"math/big"
 )
 
@@ -39,18 +41,22 @@ func (c *chainCore) QueryTransaction(txid []byte) (*pb.Transaction, error) {
 }
 
 // QueryBlock query block
-func (c *chainCore) QueryBlock(blockid []byte) (*pb.InternalBlock, error) {
-	return new(pb.InternalBlock), nil
+func (c *chainCore) QueryBlock(blockid []byte) (*xldgpb.InternalBlock, error) {
+	return new(xldgpb.InternalBlock), nil
 }
 
 // QueryBlockByHeight query block by height
-func (c *chainCore) QueryBlockByHeight(height int64) (*pb.InternalBlock, error) {
-	return new(pb.InternalBlock), nil
+func (c *chainCore) QueryBlockByHeight(height int64) (*xldgpb.InternalBlock, error) {
+	return new(xldgpb.InternalBlock), nil
 }
 
 // QueryLastBlock query last block
-func (c *chainCore) QueryLastBlock() (*pb.InternalBlock, error) {
-	return new(pb.InternalBlock), nil
+func (c *chainCore) QueryLastBlock() (*xldgpb.InternalBlock, error) {
+	return new(xldgpb.InternalBlock), nil
+}
+
+func (c *chainCore) Transfer(from string, to string, amount *big.Int) error {
+	return nil
 }
 
 // CrossQuery query contract from otherchain
