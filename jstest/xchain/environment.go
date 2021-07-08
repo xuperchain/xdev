@@ -36,17 +36,10 @@ func newEnvironment() (*environment, error) {
 	config := contract.DefaultContractConfig()
 	config.Wasm.Driver = "ixvm"
 
-	//logs.InitLog("")
-	//log15.StreamHandler(os.Stderr, log15.JsonFormat())
-	logger := log15.New("aaaa", "bbbb")
+	logger := log15.New()
 	logger.SetHandler(log15.StreamHandler(os.Stderr, log15.LogfmtFormat()))
-	//l := &Logger{
-	//	name: "xxx",
-	//}
-	logs.SetHandler(logger)
 
 	config.LogDriver = logger
-	config.DebugLog.Level = "debug"
 
 	m, err := contract.CreateManager("default", &contract.ManagerConfig{
 		Basedir:  basedir,
@@ -76,9 +69,6 @@ func newEnvironment() (*environment, error) {
 		basedir: basedir,
 	}
 	if err := e.InitAccount(); err != nil {
-		return nil, err
-	}
-	if err := e.InitLog(); err != nil {
 		return nil, err
 	}
 	return e, nil
