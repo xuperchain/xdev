@@ -2,7 +2,6 @@ package xchain
 
 import (
 	"encoding/json"
-	log15 "github.com/xuperchain/log15"
 	"github.com/xuperchain/xupercore/kernel/common/xcontext"
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/permission/acl"
@@ -35,10 +34,7 @@ func newEnvironment() (*environment, error) {
 	config := contract.DefaultContractConfig()
 	config.Wasm.Driver = "ixvm"
 
-	logger := log15.New()
-	logger.SetHandler(log15.StreamHandler(os.Stderr, log15.LogfmtFormat()))
-
-	config.LogDriver = logger
+	config.LogDriver = NewLogger()
 
 	m, err := contract.CreateManager("default", &contract.ManagerConfig{
 		Basedir:  basedir,
