@@ -7,7 +7,6 @@ import (
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/permission/acl"
 	actx "github.com/xuperchain/xupercore/kernel/permission/acl/context"
-	"github.com/xuperchain/xupercore/lib/logs"
 	"github.com/xuperchain/xupercore/protos"
 	"io/ioutil"
 	"os"
@@ -128,29 +127,6 @@ func (e *environment) InitAccount() error {
 	return nil
 }
 
-//InitLog init xupercore logger config to ignore non-crit logs and disable console output
-func (e *environment) InitLog() error {
-	logDir, err := ioutil.TempDir("", "xdev-log")
-	if err != nil {
-		return err
-	}
-	confDir, err := ioutil.TempDir("", "xdev-conf")
-	if err != nil {
-		return err
-	}
-
-	confPath := confDir + "/logs.yaml"
-	xdevlog := `
-level: info
-console: false
-`
-	if err := ioutil.WriteFile(confPath, []byte(xdevlog), 0755); err != nil {
-		return err
-	}
-
-	logs.InitLog(confPath, logDir)
-	return nil
-}
 func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	dargs := make(map[string][]byte)
 	dargs["contract_name"] = []byte(args.Name)
