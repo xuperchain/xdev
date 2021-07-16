@@ -6,13 +6,11 @@ import (
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/permission/acl"
 	actx "github.com/xuperchain/xupercore/kernel/permission/acl/context"
-	"github.com/xuperchain/xupercore/lib/logs"
 	"github.com/xuperchain/xupercore/protos"
 	"io/ioutil"
 	"os"
 
 	"github.com/golang/protobuf/proto"
-
 	_ "github.com/xuperchain/xupercore/bcs/contract/evm"
 	_ "github.com/xuperchain/xupercore/bcs/contract/native"
 	_ "github.com/xuperchain/xupercore/bcs/contract/xvm"
@@ -35,6 +33,8 @@ func newEnvironment() (*environment, error) {
 
 	config := contract.DefaultContractConfig()
 	config.Wasm.Driver = "ixvm"
+
+	config.LogDriver = NewLogger()
 
 	m, err := contract.CreateManager("default", &contract.ManagerConfig{
 		Basedir:  basedir,
@@ -64,9 +64,6 @@ func newEnvironment() (*environment, error) {
 		basedir: basedir,
 	}
 	if err := e.InitAccount(); err != nil {
-		return nil, err
-	}
-	if err := e.InitLog(); err != nil {
 		return nil, err
 	}
 	return e, nil
@@ -112,7 +109,9 @@ func (e *environment) InitAccount() error {
 		ContractSet:           nil,
 		ContractCodeFromCache: false,
 	})
-
+	if err != nil {
+		return err
+	}
 	_, err = ctx.Invoke("NewAccount", map[string][]byte{
 		"acl":          []byte(defaultAccountACL),
 		"account_name": []byte(defaultTestingAccount),
@@ -124,29 +123,6 @@ func (e *environment) InitAccount() error {
 	return nil
 }
 
-//InitLog init xupercore logger config to ignore non-crit logs and disable console output
-func (e *environment) InitLog() error {
-	logDir, err := ioutil.TempDir("", "xdev-log")
-	if err != nil {
-		return err
-	}
-	confDir, err := ioutil.TempDir("", "xdev-conf")
-	if err != nil {
-		return err
-	}
-
-	confPath := confDir + "/logs.yaml"
-	xdevlog := `
-level: crit
-console: false
-`
-	if err := ioutil.WriteFile(confPath, []byte(xdevlog), 0755); err != nil {
-		return err
-	}
-
-	logs.InitLog(confPath, logDir)
-	return nil
-}
 func (e *environment) Deploy(args deployArgs) (*ContractResponse, error) {
 	dargs := make(map[string][]byte)
 	dargs["contract_name"] = []byte(args.Name)
