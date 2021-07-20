@@ -2,13 +2,14 @@ package xchain
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
+
 	"github.com/xuperchain/xupercore/kernel/common/xcontext"
 	"github.com/xuperchain/xupercore/kernel/contract"
 	"github.com/xuperchain/xupercore/kernel/permission/acl"
 	actx "github.com/xuperchain/xupercore/kernel/permission/acl/context"
 	"github.com/xuperchain/xupercore/protos"
-	"io/ioutil"
-	"os"
 
 	"github.com/golang/protobuf/proto"
 	_ "github.com/xuperchain/xupercore/bcs/contract/evm"
@@ -88,7 +89,13 @@ type deployArgs struct {
 func convertArgs(ori map[string]interface{}) map[string][]byte {
 	ret := make(map[string][]byte)
 	for k, v := range ori {
-		ret[k] = []byte(v.(string))
+		switch v.(type){
+		case string:
+			ret[k] = []byte(v.(string))
+		default:
+			bytes,_:=json.Marshal(v)
+			ret[k] = bytes
+		}
 	}
 	return ret
 }
