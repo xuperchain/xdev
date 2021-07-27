@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"errors"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-
+	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/xuperchain/xdev/mkfile"
+	"os"
+	"os/exec"
+	"path/filepath"
 )
 
 var descTpl = `[package]
@@ -51,6 +49,8 @@ Test("hello", function (t) {
 `
 
 type initCommand struct {
+	lang     string
+	contract string
 }
 
 func newInitCommand() *cobra.Command {
@@ -60,53 +60,88 @@ func newInitCommand() *cobra.Command {
 		Short: "init initializes a new project",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var root string
-			if len(args) == 1 {
-				root = args[0]
-			}
+			//if len(args) == 1 {
+			//	root = args[0]
+			//}
 			return c.init(root)
 		},
 	}
+	cmd.Flags().StringVarP(&c.lang, "lang", "q", "cpp", "language of contract")
+	cmd.Flags().StringVarP(&c.contract, "contract", "c", "counter", "contract name")
 	return cmd
 }
 
 func (c *initCommand) init(root string) error {
-	if root != "" {
-		err := os.MkdirAll(root, 0755)
-		if err != nil {
-			return err
-		}
-		os.Chdir(root)
-	}
-	pkgfile := mkfile.PkgDescFile
-	if _, err := os.Stat(pkgfile); err == nil {
-		return errors.New("project already initialized")
-	}
-	err := ioutil.WriteFile(pkgfile, []byte(descTpl), 0644)
-	if err != nil {
-		return err
-	}
-	maindir := filepath.Join("src")
-	err = os.MkdirAll(maindir, 0755)
-	if err != nil {
-		return err
-	}
-	mainfile := filepath.Join(maindir, "main.cc")
-	err = ioutil.WriteFile(mainfile, []byte(codeTpl), 0644)
-	if err != nil {
-		return err
+	reppURL := fmt.Sprintf("https://hub.fastgit.org/xuperchain/contract-sdk-%s.git", c.lang)
+	dest := os.TempDir()
+	defer os.RemoveAll(dest)
+	if _, err := os.Stat(dest); err != nil {
+		//no error check
+		os.RemoveAll(dest)
 	}
 
-	testdir := filepath.Join("test")
-	err = os.MkdirAll(testdir, 0755)
+	cmd := exec.Command("git", "clone", reppURL, dest+"/contracts")
+	fmt.Println(filepath.Base("git") == "git")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Start()
 	if err != nil {
 		return err
 	}
-	testfile := filepath.Join(testdir, "hello.test.js")
-	err = ioutil.WriteFile(testfile, []byte(testTpl), 0644)
+	err = cmd.Wait()
 	if err != nil {
 		return err
 	}
-	return nil
+	//no cp syscall exist,so just use cp command
+	//TODO
+	// use filepath
+	// process cc contract
+	contract := c.contract
+	if c.lang == "cpp" {
+		contract += ".cc"
+	}
+	cmd2 := exec.Command("cp", "-r", dest+"contracts/example/"+contract, ".")
+	cmd2.Stderr = os.Stderr
+	cmd2.Stdout = os.Stdout
+	cmd2.Start()
+	return cmd2.Wait()
+	//if root != "" {
+	//	err := os.MkdirAll(root, 0755)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	os.Chdir(root)
+	//}
+	//pkgfile := mkfile.PkgDescFile
+	//if _, err := os.Stat(pkgfile); err == nil {
+	//	return errors.New("project already initialized")
+	//}
+	//err := ioutil.WriteFile(pkgfile, []byte(descTpl), 0644)
+	//if err != nil {
+	//	return err
+	//}
+	//maindir := filepath.Join("src")
+	//err = os.MkdirAll(maindir, 0755)
+	//if err != nil {
+	//	return err
+	//}
+	//mainfile := filepath.Join(maindir, "main.cc")
+	//err = ioutil.WriteFile(mainfile, []byte(codeTpl), 0644)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//testdir := filepath.Join("test")
+	//err = os.MkdirAll(testdir, 0755)
+	//if err != nil {
+	//	return err
+	//}
+	//testfile := filepath.Join(testdir, "hello.test.js")
+	//err = ioutil.WriteFile(testfile, []byte(testTpl), 0644)
+	//if err != nil {
+	//	return err
+	//}
+	//return nil
 }
 
 func init() {
