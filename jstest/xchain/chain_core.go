@@ -2,7 +2,10 @@ package xchain
 
 import (
 	"errors"
+	"github.com/xuperchain/xupercore/bcs/ledger/xledger/state"
 	pb "github.com/xuperchain/xupercore/bcs/ledger/xledger/xldgpb"
+	pb2 "github.com/xuperchain/xupercore/kernel/contract/bridge/pb"
+	"github.com/xuperchain/xupercore/kernel/ledger"
 	"math/big"
 )
 
@@ -34,13 +37,13 @@ func (c *chainCore) VerifyContractOwnerPermission(contractName string, authRequi
 }
 
 // QueryTransaction query confirmed tx
-func (c *chainCore) QueryTransaction(txid []byte) (*pb.Transaction, error) {
-	return new(pb.Transaction), nil
+func (c *chainCore) QueryTransaction(txid []byte) (*pb2.Transaction, error) {
+	return &pb2.Transaction{}, nil
 }
 
 // QueryBlock query block
-func (c *chainCore) QueryBlock(blockid []byte) (*pb.InternalBlock, error) {
-	return new(pb.InternalBlock), nil
+func (c *chainCore) QueryBlock(blockid []byte) (ledger.BlockHandle, error) {
+	return &state.BlockAgent{}, nil
 }
 
 // QueryBlockByHeight query block by height
