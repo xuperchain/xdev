@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultDockerImage = "hub.baidubce.com/xchain/emcc:1.0.0"
+	defaultDockerImage = "xuper/emcc:0.1.0"
 	DefaultXROOT       = "/opt/xchain"
 )
 
