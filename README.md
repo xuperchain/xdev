@@ -14,6 +14,7 @@ XDEV 是 [XuperChain](https://github.com/xuperchain/xuperchain) 合约构建测�
 
 ``` bash
     git clone https://github.com/xuperchain/xdev.git 
+    git checkout v1.0.0
     cd xdev 
     make 
 ```
