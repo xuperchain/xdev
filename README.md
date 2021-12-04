@@ -35,7 +35,7 @@ XDEV 是 [XuperChain](https://github.com/xuperchain/xuperchain) 合约构建测�
 ```
 
 1. 多文件构建
-以 [xuper_relay]([https://](https://github.com/xuperchain/contract-sdk-cpp/tree/main/example/xuper_relayer))为例，执行
+以 [xuper_relay](https://github.com/xuperchain/contract-sdk-cpp/tree/main/example/xuper_relayer))为例，执行
 ``` bash
     xdev build 
 ``` 
