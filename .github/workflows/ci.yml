@@ -15,6 +15,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
 
       - name: setup Docker
+        if: "contains( ${{ matrix.platform }}, 'ubuntu')"
         uses: docker-practice/actions-setup-docker@master
 
       - name: Checkout code
@@ -34,5 +35,3 @@ jobs:
       - name: Counter size check
         run: |
           make && bash scripts/test/counter_size.sh
-        env:
-          XDEV_CC_IMAGE: xuper/emcc:dev
