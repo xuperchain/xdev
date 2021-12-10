@@ -1,4 +1,4 @@
-# XuperChain 文档
+# XDEV 文档
 XDEV 是 [XuperChain](https://github.com/xuperchain/xuperchain) 合约构建测试工具，支持
 - WASM 合约构建
 - 不同语言和类型的合约测试
