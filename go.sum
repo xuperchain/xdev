@@ -159,8 +159,6 @@ github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fsouza/go-dockerclient v1.6.0 h1:f7j+AX94143JL1H3TiqSMkM4EcLDI0De1qD4GGn3Hig=
 github.com/fsouza/go-dockerclient v1.6.0/go.mod h1:YWwtNPuL4XTX1SKJQk86cWPmmqwx+4np9qfPbb+znGc=
-github.com/gammazero/deque v0.1.0 h1:f9LnNmq66VDeuAlSAapemq/U7hJ2jpIWa4c09q8Dlik=
-github.com/gammazero/deque v0.1.0/go.mod h1:KQw7vFau1hHuM8xmI9RbgKFbAsQFWmBpqQ2KenFLk6M=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-check/check v0.0.0-20180628173108-788fd7840127/go.mod h1:9ES+weclKsC9YodN5RgxqK/VD9HM9JsCSh7rNhMZE98=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
@@ -776,8 +774,8 @@ github.com/xuperchain/log15 v0.0.0-20190620081506-bc88a9198230 h1:AWFZFbmLhY6VG6
 github.com/xuperchain/log15 v0.0.0-20190620081506-bc88a9198230/go.mod h1:90Da9GDXy9Yle79ZHSJY1c7X+1meBKsoX0vkRy09xis=
 github.com/xuperchain/wagon v0.6.1-0.20200313164333-db544e251599 h1:xh8MpzUZFmNOpeJyiiBCYOJq7gq7nRBU647y6e78Qms=
 github.com/xuperchain/wagon v0.6.1-0.20200313164333-db544e251599/go.mod h1:PjShksGcTLuvtHxudQ7nOdlvlw2NdbZrTn8jvdY9Mkw=
-github.com/xuperchain/xupercore v0.0.0-20211217074346-8b7d81f702cc h1:iQeIWM8XnsVbQFJweNMicwiNk0OfpknDItSDm/9+QQ4=
-github.com/xuperchain/xupercore v0.0.0-20211217074346-8b7d81f702cc/go.mod h1:3suDhAO+yr7X53KE4Fmw84wprbjJr/qhOC8T8V9NhBA=
+github.com/xuperchain/xupercore v0.0.0-20210820071654-4a9d712921d2 h1:mcdDEwmJVjXs+FGuPakmicK7U2mr55RUvOHebgU6KVQ=
+github.com/xuperchain/xupercore v0.0.0-20210820071654-4a9d712921d2/go.mod h1:P1Jw/3cTcbQjQmUuHHv+axSq9bN/AqxwcZSdbA2XuK8=
 github.com/xuperchain/xvm v0.0.0-20210126142521-68fd016c56d7 h1:ARg101vOoX4N+6hbwtud6b0P/bb+7JtrCfVXAHa/xHU=
 github.com/xuperchain/xvm v0.0.0-20210126142521-68fd016c56d7/go.mod h1:XTaJSLDGYlcAPFb5vWH4vVALckO3V5+wa4zl1mpKMjg=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
