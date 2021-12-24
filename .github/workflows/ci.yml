@@ -35,3 +35,5 @@ jobs:
       - name: Counter size check
         run: |
           make && bash scripts/test/counter_size.sh
+        env:
+          XDEV_CC_IMAGE: xuper/emcc:dev
