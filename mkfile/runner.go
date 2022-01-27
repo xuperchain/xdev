@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -113,7 +112,7 @@ func (r *Runner) makeUsingDocker(mkfile string) error {
 	mountpaths := r.mountPaths()
 	runargs := []string{
 		"run",
-		"-u", strconv.Itoa(os.Getuid()) + ":" + strconv.Itoa(os.Getgid()),
+		// "-u", strconv.Itoa(os.Getuid()) + ":" + strconv.Itoa(os.Getgid()),
 		"--rm",
 		"-w", r.entry.Path,
 		"-e", fmt.Sprintf("XDEV_ROOT=%s", r.xroot),

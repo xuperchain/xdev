@@ -29,6 +29,7 @@ var (
 		"--no-entry",
 		"-s EXTRA_EXPORTED_RUNTIME_METHODS=[\"stackAlloc\"]",
 		"-L/usr/local/lib",
+		"-L/data/apps/emsdk/upstream/emscripten/cache/sysroot/lib/",
 		"-lprotobuf-lite",
 		"-lpthread",
 	}
