@@ -26,7 +26,6 @@ var (
 		"-s TOTAL_STACK=256KB",
 		"-s TOTAL_MEMORY=1MB",
 		"-s DETERMINISTIC=1",
-		"--no-entry",
 		"-s EXTRA_EXPORTED_RUNTIME_METHODS=[\"stackAlloc\"]",
 		"-L/usr/local/lib",
 		"-L/emsdk/upstream/emscripten/cache/sysroot/lib/",
@@ -41,6 +40,7 @@ type buildCommand struct {
 	builder             *mkfile.Builder
 	entryPkg            *mkfile.Package
 	UsingPrecompiledSDK bool
+	NoEntry             bool
 	xdevRoot            string
 
 	genCompileCommand bool
@@ -70,6 +70,9 @@ func newBuildCommand() *cobra.Command {
 				c.xdevRoot = xroot
 				c.ldflags = append(c.ldflags, fmt.Sprintf("--js-library %s/src/xchain/exports.js", xroot))
 			}
+			if c.NoEntry {
+				c.ldflags = append(c.ldflags, "--no-entry")
+			}
 			return c.build(args)
 		},
 	}
@@ -80,6 +83,7 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.makeFlags, "mkflags", "", "", "extra flags passing to make command")
 	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
 	cmd.Flags().BoolVarP(&c.UsingPrecompiledSDK, "using-precompiled-sdk", "", true, "using precompiled sdk")
+	cmd.Flags().BoolVarP(&c.NoEntry, "no-entry", "", true, "do not output any entry point")
 	return cmd
 }
 
