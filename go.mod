@@ -16,6 +16,6 @@ require (
 
 replace github.com/hyperledger/burrow => github.com/xuperchain/burrow v0.30.6-0.20211229032028-fbee6a05ab0f
 
-replace github.com/xuperchain/xupercore => github.com/xuperchain/xupercore v0.0.0-20220308095841-1bb45ea07e34
+replace github.com/xuperchain/xvm => github.com/xuperchain/xvm v0.0.0-20220225110211-bd25eb4d8997
 
-replace github.com/xuperchain/xvm => github.com/xuperchain/xvm v0.0.0-20220308024100-68a81f4c609b
+replace github.com/xuperchain/xupercore => github.com/xuperchain/xupercore v0.0.0-20220225071354-5439bf8c4bf5
