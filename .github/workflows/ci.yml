@@ -36,4 +36,4 @@ jobs:
         run: |
           make && bash scripts/test/counter_size.sh
         env:
-          XDEV_CC_IMAGE: xuper/emcc:1.0.1
+          XDEV_CC_IMAGE: xuper/emcc:llvm_backend
