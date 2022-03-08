@@ -32,8 +32,8 @@ jobs:
         with:
           file: ./coverage.txt
 
-      - name: Counter size check
-        run: |
-          make && bash scripts/test/counter_size.sh
-        env:
-          XDEV_CC_IMAGE: xuper/emcc:1.0.1
+      # - name: Counter size check
+      #   run: |
+      #     make && bash scripts/test/counter_size.sh
+      #   env:
+      #     XDEV_CC_IMAGE: xuper/emcc:1.0.1
