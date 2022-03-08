@@ -25,7 +25,7 @@ jobs:
         run: |
           make test && make coverage
         env:
-          XDEV_CC_IMAGE: xuper/emcc:1.0.1
+          XDEV_CC_IMAGE: xuper/emcc:llvm_backend
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
