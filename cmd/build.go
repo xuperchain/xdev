@@ -26,7 +26,7 @@ var (
 		"-s TOTAL_STACK=256KB",
 		"-s TOTAL_MEMORY=1MB",
 		"-s DETERMINISTIC=1",
-		"-s EXTRA_EXPORTED_RUNTIME_METHODS=[\"stackAlloc\"]",
+		"-s EXPORTED_RUNTIME_METHODS=[\"stackAlloc\"]",
 		"-L/usr/local/lib",
 		"-L/emsdk/upstream/emscripten/cache/sysroot/lib/",
 		"-lprotobuf-lite",
