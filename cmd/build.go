@@ -26,8 +26,6 @@ var (
 		"-s TOTAL_STACK=256KB",
 		"-s TOTAL_MEMORY=1MB",
 		"-s DETERMINISTIC=1",
-		"-s ALLOW_MEMORY_GROWTH=1",
-		"-s MAXIMUM_MEMORY=2MB",
 		"-s EXPORTED_RUNTIME_METHODS=[\"stackAlloc\"]",
 		"-L/usr/local/lib",
 		"-L/emsdk/upstream/emscripten/cache/sysroot/lib/",
