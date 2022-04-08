@@ -776,10 +776,10 @@ github.com/xuperchain/log15 v0.0.0-20190620081506-bc88a9198230 h1:AWFZFbmLhY6VG6
 github.com/xuperchain/log15 v0.0.0-20190620081506-bc88a9198230/go.mod h1:90Da9GDXy9Yle79ZHSJY1c7X+1meBKsoX0vkRy09xis=
 github.com/xuperchain/wagon v0.6.1-0.20200313164333-db544e251599 h1:xh8MpzUZFmNOpeJyiiBCYOJq7gq7nRBU647y6e78Qms=
 github.com/xuperchain/wagon v0.6.1-0.20200313164333-db544e251599/go.mod h1:PjShksGcTLuvtHxudQ7nOdlvlw2NdbZrTn8jvdY9Mkw=
-github.com/xuperchain/xupercore v0.0.0-20220225071354-5439bf8c4bf5 h1:6cQ8Wi6UW7cKAbxNdv4JGYh3qzx4LDpQSugHQjR6Sc4=
-github.com/xuperchain/xupercore v0.0.0-20220225071354-5439bf8c4bf5/go.mod h1:PL1oD9kxBLe/I8ta+2VmCO3MJM/bvnPYvWTe6E8bb+A=
-github.com/xuperchain/xvm v0.0.0-20220225110211-bd25eb4d8997 h1:glN3uhMm3Atbyz08T7oFw3Nb/PWPryS3bRZdvXgu42M=
-github.com/xuperchain/xvm v0.0.0-20220225110211-bd25eb4d8997/go.mod h1:XTaJSLDGYlcAPFb5vWH4vVALckO3V5+wa4zl1mpKMjg=
+github.com/xuperchain/xupercore v0.0.0-20220323054134-beddc96c027d h1:3wF92f5IvPRPQ0lZsa7Cq75V5um5Cu5TXimV/ld3bzU=
+github.com/xuperchain/xupercore v0.0.0-20220323054134-beddc96c027d/go.mod h1:PvdrQ3LmUEehfjbXlZ5VW6iez61cX5RqTH2BCEh5Ds0=
+github.com/xuperchain/xvm v0.0.0-20220408092910-bfd7231ca557 h1:Ha5MaDIdCQDSNPytAuuZaNEOobhqqRrW4HxijZAtl68=
+github.com/xuperchain/xvm v0.0.0-20220408092910-bfd7231ca557/go.mod h1:XTaJSLDGYlcAPFb5vWH4vVALckO3V5+wa4zl1mpKMjg=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=

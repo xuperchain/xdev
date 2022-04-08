@@ -20,8 +20,14 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
+        
+      - name: Test Release
+        run: |
+          make test && make coverage
+        env:
+          XDEV_CC_IMAGE: xuper/emcc:1.0.1
 
-      - name: Test
+      - name: Test Debug 
         run: |
           make test && make coverage
         env:
@@ -32,8 +38,3 @@ jobs:
         with:
           file: ./coverage.txt
 
-      # - name: Counter size check
-      #   run: |
-      #     make && bash scripts/test/counter_size.sh
-      #   env:
-      #     XDEV_CC_IMAGE: xuper/emcc:1.0.1

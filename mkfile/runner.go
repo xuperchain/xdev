@@ -31,10 +31,6 @@ type Runner struct {
 }
 
 func NewRunner(ccImage string) *Runner {
-	// img := os.Getenv("XDEV_CC_IMAGE")
-	// if img == "" {
-	// img = defaultDockerImage
-	// }
 	return &Runner{
 		image: ccImage,
 	}

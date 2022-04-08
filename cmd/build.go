@@ -40,10 +40,10 @@ var (
 	debugBuildFlags = []string{"-fsanitize=undefined", "-O0"}
 	debugLinkFlags  = []string{
 		"-fsanitize=undefined",
-		"-s TOTAL_MEMORY=8MB",
+		"-s TOTAL_MEMORY=2MB",
 		"-O0",
 		"-s ALLOW_MEMORY_GROWTH=1",
-		"-s MAXIMUM_MEMORY=2MB"}
+		"-s MAXIMUM_MEMORY=4MB"}
 
 	releaseBuildFlags = []string{"-Os"}
 
