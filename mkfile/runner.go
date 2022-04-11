@@ -30,13 +30,9 @@ type Runner struct {
 	*log.Logger
 }
 
-func NewRunner() *Runner {
-	img := os.Getenv("XDEV_CC_IMAGE")
-	if img == "" {
-		img = defaultDockerImage
-	}
+func NewRunner(ccImage string) *Runner {
 	return &Runner{
-		image: img,
+		image: ccImage,
 	}
 }
 

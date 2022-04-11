@@ -16,22 +16,42 @@ import (
 var (
 	defaultCxxFlags = []string{
 		"-std=c++11",
-		"-Os",
 		"-I/usr/local/include",
 		"-Isrc",
 		"-Werror=vla",
 	}
 	defaultLDFlags = []string{
-		"-Oz",
 		"-s TOTAL_STACK=256KB",
-		"-s TOTAL_MEMORY=1MB",
 		"-s DETERMINISTIC=1",
-		"-s EXTRA_EXPORTED_RUNTIME_METHODS=[\"stackAlloc\"]",
+		"-s EXPORTED_RUNTIME_METHODS=[\"stackAlloc\"]",
 		"-L/usr/local/lib",
 		"-L/emsdk/upstream/emscripten/cache/sysroot/lib/",
 		"-lprotobuf-lite",
 		"-lpthread",
 	}
+)
+
+const (
+	buildModeDebug   = "debug"
+	buildModeRelease = "release"
+)
+
+var (
+	debugBuildFlags = []string{"-fsanitize=undefined", "-O0"}
+	debugLinkFlags  = []string{
+		"-fsanitize=undefined",
+		"-s TOTAL_MEMORY=2MB",
+		"-O0",
+		"-s ALLOW_MEMORY_GROWTH=1",
+		"-s MAXIMUM_MEMORY=4MB"}
+
+	releaseBuildFlags = []string{"-Os"}
+
+	releaseLinkFlags = []string{"-s TOTAL_MEMORY=1MB", "-Oz"}
+)
+var (
+	ccImageRelease = "xuper/emcc:0.1.0"
+	ccImageDebug   = "xuper/emcc:llvm_backend"
 )
 
 type buildCommand struct {
@@ -42,6 +62,8 @@ type buildCommand struct {
 	UsingPrecompiledSDK bool
 	NoEntry             bool
 	xdevRoot            string
+	buildMod            string
+	ccImage             string
 
 	genCompileCommand bool
 	makeFileOnly      bool
@@ -73,6 +95,26 @@ func newBuildCommand() *cobra.Command {
 			if c.NoEntry {
 				c.ldflags = append(c.ldflags, "--no-entry")
 			}
+			// CCImage 优先级：环境变量 > 默认值
+			// 1. 如果是debug 模式，则采用debugImage
+			// 2. 如果有环境变量，则以环境变量为准
+
+			c.ccImage = ccImageRelease
+			if c.buildMod == buildModeDebug {
+				c.ccImage = ccImageDebug
+			}
+
+			if image := os.Getenv("XDEV_CC_IMAGE"); image != "" {
+				c.ccImage = image
+			}
+
+			if c.buildMod == buildModeDebug {
+				c.cxxFlags = append(c.cxxFlags, debugBuildFlags...)
+				c.ldflags = append(c.ldflags, debugLinkFlags...)
+			} else if c.buildMod == buildModeRelease {
+				c.cxxFlags = append(c.cxxFlags, releaseBuildFlags...)
+				c.ldflags = append(c.ldflags, releaseLinkFlags...)
+			}
 			return c.build(args)
 		},
 	}
@@ -84,6 +126,8 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
 	cmd.Flags().BoolVarP(&c.UsingPrecompiledSDK, "using-precompiled-sdk", "", true, "using precompiled sdk")
 	cmd.Flags().BoolVarP(&c.NoEntry, "no-entry", "", true, "do not output any entry point")
+	cmd.Flags().StringVarP(&c.buildMod, "build-mode", "", buildModeRelease, "build mode, may be debug or release")
+	// cmd.Flags().StringVarP(&c.ccImage, "cc-image", "", ccImageRelease, "")
 	return cmd
 }
 
@@ -241,7 +285,7 @@ func (c *buildCommand) buildPackage(root string) error {
 	makefile.Close()
 	defer os.Remove(".Makefile")
 
-	runner := mkfile.NewRunner().
+	runner := mkfile.NewRunner(c.ccImage).
 		WithEntry(c.entryPkg).
 		WithCacheDir(xcache).
 		WithXROOT(c.xdevRoot).
