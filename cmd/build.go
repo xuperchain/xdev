@@ -126,7 +126,7 @@ func newBuildCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&c.submodules, "submodule", "s", nil, "build submodules")
 	cmd.Flags().BoolVarP(&c.UsingPrecompiledSDK, "using-precompiled-sdk", "", true, "using precompiled sdk")
 	cmd.Flags().BoolVarP(&c.NoEntry, "no-entry", "", true, "do not output any entry point")
-	cmd.Flags().StringVarP(&c.buildMod, "build-mode", "", buildModeRelease, "todo")
+	cmd.Flags().StringVarP(&c.buildMod, "build-mode", "", buildModeRelease, "build mode, may be debug or release")
 	// cmd.Flags().StringVarP(&c.ccImage, "cc-image", "", ccImageRelease, "")
 	return cmd
 }
