@@ -1,13 +1,14 @@
 package xchain
 
 import (
-	log15 "github.com/xuperchain/log15"
-	"github.com/xuperchain/xupercore/lib/logs"
 	"os"
+	"strings"
+
+	"github.com/xuperchain/xupercore/lib/logs"
 )
 
 type mockLogger struct {
-	log15.Logger
+	// log15.Logger
 }
 
 func (*mockLogger) GetLogId() string {
@@ -21,8 +22,32 @@ func (*mockLogger) SetInfoField(key string, value interface{}) {
 
 }
 
+func (l *mockLogger) Debug(msg string, ctx ...interface{}) {
+
+}
+func (l *mockLogger) Trace(msg string, ctx ...interface{}) {
+
+}
+func (l *mockLogger) Info(msg string, ctx ...interface{}) {
+	if len(msg) == 0 {
+		return
+	}
+	os.Stdout.WriteString(msg)
+	//  27 is escape character
+	if msg[0] != byte(27) && !strings.HasSuffix(msg, "\n") {
+		os.Stdout.WriteString("\n")
+	}
+}
+func (l *mockLogger) Warn(msg string, ctx ...interface{}) {
+
+}
+func (l *mockLogger) Error(msg string, ctx ...interface{}) {
+
+}
+func (l *mockLogger) Crit(msg string, ctx ...interface{}) {
+
+}
+
 func NewLogger() logs.Logger {
-	logger := log15.New()
-	logger.SetHandler(log15.StreamHandler(os.Stderr, log15.LogfmtFormat()))
-	return &mockLogger{logger}
+	return &mockLogger{}
 }

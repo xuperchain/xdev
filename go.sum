@@ -778,8 +778,8 @@ github.com/xuperchain/wagon v0.6.1-0.20200313164333-db544e251599 h1:xh8MpzUZFmNO
 github.com/xuperchain/wagon v0.6.1-0.20200313164333-db544e251599/go.mod h1:PjShksGcTLuvtHxudQ7nOdlvlw2NdbZrTn8jvdY9Mkw=
 github.com/xuperchain/xupercore v0.0.0-20220323054134-beddc96c027d h1:3wF92f5IvPRPQ0lZsa7Cq75V5um5Cu5TXimV/ld3bzU=
 github.com/xuperchain/xupercore v0.0.0-20220323054134-beddc96c027d/go.mod h1:PvdrQ3LmUEehfjbXlZ5VW6iez61cX5RqTH2BCEh5Ds0=
-github.com/xuperchain/xvm v0.0.0-20220408092910-bfd7231ca557 h1:Ha5MaDIdCQDSNPytAuuZaNEOobhqqRrW4HxijZAtl68=
-github.com/xuperchain/xvm v0.0.0-20220408092910-bfd7231ca557/go.mod h1:XTaJSLDGYlcAPFb5vWH4vVALckO3V5+wa4zl1mpKMjg=
+github.com/xuperchain/xvm v0.0.0-20220412083010-7737da252598 h1:WjABEGM3akH2riQAt/7BEULVheCi3kFlby/POO5VgMU=
+github.com/xuperchain/xvm v0.0.0-20220412083010-7737da252598/go.mod h1:XTaJSLDGYlcAPFb5vWH4vVALckO3V5+wa4zl1mpKMjg=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
