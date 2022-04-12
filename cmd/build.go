@@ -37,17 +37,24 @@ const (
 )
 
 var (
-	debugBuildFlags = []string{"-fsanitize=undefined", "-O0"}
-	debugLinkFlags  = []string{
+	debugBuildFlags = []string{
 		"-fsanitize=undefined",
-		"-s TOTAL_MEMORY=2MB",
+		"-fsanitize=address",
+		"-O0",
+	}
+	debugLinkFlags = []string{
+		"-fsanitize=undefined",
+		"-fsanitize=address",
+
+		"-s TOTAL_MEMORY=64MB",
 		"-O0",
 		"-s ALLOW_MEMORY_GROWTH=1",
-		"-s MAXIMUM_MEMORY=4MB"}
+		"-s MAXIMUM_MEMORY=128MB"}
+)
 
+var (
 	releaseBuildFlags = []string{"-Os"}
-
-	releaseLinkFlags = []string{"-s TOTAL_MEMORY=1MB", "-Oz"}
+	releaseLinkFlags  = []string{"-s TOTAL_MEMORY=1MB", "-Oz"}
 )
 var (
 	ccImageRelease = "xuper/emcc:0.1.0"
