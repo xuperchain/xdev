@@ -276,8 +276,8 @@ func (c *buildCommand) buildPackage(root string) error {
 		if err != nil {
 			return err
 		}
-		c.builder.GenerateCompileCommands(cfile)
-		cfile.Close()
+		defer cfile.Close()
+		return c.builder.GenerateCompileCommands(cfile)
 	}
 
 	makefile, err := os.Create(".Makefile")
