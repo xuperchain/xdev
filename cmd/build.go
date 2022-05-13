@@ -198,7 +198,10 @@ func (c *buildCommand) xdevCacheDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(homedir, ".xdev-cache"), nil
+	// pattrn of cache dir
+	// ~/.xdev-cache/debug for debug build
+	// ~/.xdev-cache/release for release build
+	return filepath.Join(homedir, ".xdev-cache", c.buildMod), nil
 }
 
 func (c *buildCommand) build(args []string) error {
