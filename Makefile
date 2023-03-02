@@ -1,3 +1,5 @@
+# set go env if needed
+GO := go
 
 all: build
 
@@ -5,13 +7,13 @@ export GO111MODULE=on
 
 build:
 	@ls bin 2>&1 >/dev/null || mkdir bin
-	go build -o bin/xdev github.com/xuperchain/xdev
+	$(GO) build -o bin/xdev github.com/xuperchain/xdev
 
 install:
-	go install github.com/xuperchain/xdev
+	$(GO) install github.com/xuperchain/xdev
 
 unit-test:
-	go test ./...
+	$(GO) test ./...
 
 build-test:build
 	bin/xdev build -o testdata/counter-c.wasm testdata/counter.cc
@@ -20,7 +22,7 @@ build-test:build
 test:unit-test build-test
 
 lint:
-	go vet ./...
+	$(GO) vet ./...
 
 coverage:
-	go test -coverprofile=coverage.txt -covermode=atomic ./...
+	$(GO) test -coverprofile=coverage.txt -covermode=atomic ./...
